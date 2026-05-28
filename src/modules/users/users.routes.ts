@@ -1,0 +1,33 @@
+import { Hono } from 'hono';
+import { authMiddleware } from '@/middlewares/auth.middleware';
+import { requireRole } from '@/middlewares/role.middleware';
+import { validate } from '@/middlewares/validation.middleware';
+import { paginationQuerySchema } from '@/shared/pagination';
+import {
+  createUserSchema,
+  updateUserSchema,
+  userIdParamSchema,
+} from './users.schema';
+import {
+  createUserHandler,
+  deleteUserHandler,
+  getUserHandler,
+  listUsersHandler,
+  updateUserHandler,
+} from './users.handler';
+import type { AppBindings } from '@/types/hono';
+
+export const usersRoutes = new Hono<AppBindings>();
+
+usersRoutes.use('*', authMiddleware, requireRole('admin'));
+
+usersRoutes.get('/', validate('query', paginationQuerySchema), listUsersHandler);
+usersRoutes.get('/:id', validate('param', userIdParamSchema), getUserHandler);
+usersRoutes.post('/', validate('json', createUserSchema), createUserHandler);
+usersRoutes.patch(
+  '/:id',
+  validate('param', userIdParamSchema),
+  validate('json', updateUserSchema),
+  updateUserHandler,
+);
+usersRoutes.delete('/:id', validate('param', userIdParamSchema), deleteUserHandler);

@@ -1,0 +1,395 @@
+{
+  "info": {
+    "_postman_id": "pos-api-collection",
+    "name": "POS API",
+    "description": "Collection untuk testing POS Backend API.\n\n## Setup\n1. Import file ini ke Postman\n2. Import juga `pos-api.postman_environment.json` sebagai Environment\n3. Pilih environment 'POS API - Local' di Postman\n4. Login dulu via 'Auth > Login (Admin)' — token otomatis tersimpan di `{{token}}`\n5. Endpoint terproteksi akan otomatis pakai token tersebut\n\n## Default Credentials\n- **Admin**: admin / admin123\n- **Kasir**: kasir1 / kasir123",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "  pm.environment.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login (Kasir)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.success && json.data && json.data.token) {",
+                  "  pm.environment.set('token', json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"kasir1\",\n  \"password\": \"kasir123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (admin only)",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "q", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/users/1", "host": ["{{baseUrl}}"], "path": ["users", "1"] }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"namaUser\": \"Kasir Baru\",\n  \"username\": \"kasir2\",\n  \"password\": \"kasir123\",\n  \"role\": \"kasir\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"namaUser\": \"Kasir Updated\"\n}" },
+            "url": { "raw": "{{baseUrl}}/users/3", "host": ["{{baseUrl}}"], "path": ["users", "3"] }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/users/3", "host": ["{{baseUrl}}"], "path": ["users", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bahan Baku",
+      "item": [
+        {
+          "name": "List Bahan Baku",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/bahan-baku?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["bahan-baku"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "q", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Bahan Baku by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/bahan-baku/1", "host": ["{{baseUrl}}"], "path": ["bahan-baku", "1"] }
+          }
+        },
+        {
+          "name": "Create Bahan Baku (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"namaBahan\": \"Coklat Bubuk\",\n  \"satuan\": \"gram\",\n  \"stok\": \"3000\",\n  \"stokMinimum\": \"300\",\n  \"hargaSatuan\": 250\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/bahan-baku", "host": ["{{baseUrl}}"], "path": ["bahan-baku"] }
+          }
+        },
+        {
+          "name": "Update Bahan Baku (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"hargaSatuan\": 175\n}" },
+            "url": { "raw": "{{baseUrl}}/bahan-baku/1", "host": ["{{baseUrl}}"], "path": ["bahan-baku", "1"] }
+          }
+        },
+        {
+          "name": "Delete Bahan Baku (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/bahan-baku/6", "host": ["{{baseUrl}}"], "path": ["bahan-baku", "6"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "List Suppliers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/suppliers?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["suppliers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Supplier by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/suppliers/1", "host": ["{{baseUrl}}"], "path": ["suppliers", "1"] }
+          }
+        },
+        {
+          "name": "Create Supplier (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"namaSupplier\": \"PT Sumber Baru\",\n  \"noTelp\": \"08123456789\",\n  \"alamat\": \"Jl. Sudirman No. 1\",\n  \"email\": \"sumber@example.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/suppliers", "host": ["{{baseUrl}}"], "path": ["suppliers"] }
+          }
+        },
+        {
+          "name": "Update Supplier (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"noTelp\": \"08111222333\"\n}" },
+            "url": { "raw": "{{baseUrl}}/suppliers/1", "host": ["{{baseUrl}}"], "path": ["suppliers", "1"] }
+          }
+        },
+        {
+          "name": "Delete Supplier (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/suppliers/3", "host": ["{{baseUrl}}"], "path": ["suppliers", "3"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Menus",
+      "item": [
+        {
+          "name": "List Menus",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/menus?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["menus"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Menu by ID (with resep)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/menus/1", "host": ["{{baseUrl}}"], "path": ["menus", "1"] }
+          }
+        },
+        {
+          "name": "Create Menu (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"namaMenu\": \"Coklat Panas\",\n  \"kategori\": \"minuman\",\n  \"harga\": 16000,\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/menus", "host": ["{{baseUrl}}"], "path": ["menus"] }
+          }
+        },
+        {
+          "name": "Update Menu (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"harga\": 17000\n}" },
+            "url": { "raw": "{{baseUrl}}/menus/5", "host": ["{{baseUrl}}"], "path": ["menus", "5"] }
+          }
+        },
+        {
+          "name": "Delete Menu (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/menus/5", "host": ["{{baseUrl}}"], "path": ["menus", "5"] }
+          }
+        },
+        {
+          "name": "List Resep Menu",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/menus/1/resep", "host": ["{{baseUrl}}"], "path": ["menus", "1", "resep"] }
+          }
+        },
+        {
+          "name": "Add Resep (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"bahanId\": 4,\n  \"jumlahPakai\": \"50\"\n}" },
+            "url": { "raw": "{{baseUrl}}/menus/1/resep", "host": ["{{baseUrl}}"], "path": ["menus", "1", "resep"] }
+          }
+        },
+        {
+          "name": "Update Resep (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"jumlahPakai\": \"12\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/menus/1/resep/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["menus", "1", "resep", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Resep (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/menus/1/resep/13",
+              "host": ["{{baseUrl}}"],
+              "path": ["menus", "1", "resep", "13"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

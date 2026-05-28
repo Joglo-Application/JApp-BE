@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pos_db
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    ports:
+      - '5432:5432'
+    volumes:
+      - pos-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d pos_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pos-postgres-data:
+    name: pos-postgres-data
