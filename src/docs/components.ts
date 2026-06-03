@@ -342,4 +342,102 @@ export const schemas = {
       user: { $ref: '#/components/schemas/User' },
     },
   },
+
+  // Pesanan schemas
+  PesananItem: {
+    type: 'object',
+    properties: {
+      detailId: { type: 'integer', example: 1 },
+      menuId: { type: 'integer', example: 1 },
+      namaMenu: { type: 'string', example: 'Kopi Susu' },
+      jumlah: { type: 'integer', example: 2 },
+      hargaSatuan: { type: 'integer', example: 18000 },
+      subtotal: { type: 'integer', example: 36000 },
+    },
+  },
+  Pesanan: {
+    type: 'object',
+    properties: {
+      pesananId: { type: 'integer', example: 1 },
+      tanggal: { type: 'string', format: 'date', example: '2026-06-03' },
+      status: {
+        type: 'string',
+        enum: ['pending', 'completed', 'cancelled'],
+        example: 'pending',
+      },
+      total: { type: 'integer', example: 36000 },
+      userId: { type: 'integer', example: 1 },
+      createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  PesananDetail: {
+    allOf: [
+      { $ref: '#/components/schemas/Pesanan' },
+      {
+        type: 'object',
+        properties: {
+          items: { type: 'array', items: { $ref: '#/components/schemas/PesananItem' } },
+          pembayaran: {
+            oneOf: [{ $ref: '#/components/schemas/Pembayaran' }, { type: 'null' }],
+          },
+        },
+      },
+    ],
+  },
+  CreatePesananInput: {
+    type: 'object',
+    required: ['items'],
+    properties: {
+      items: {
+        type: 'array',
+        minItems: 1,
+        description: 'Daftar item pesanan. Total & stok dihitung server-side dari resep menu.',
+        items: {
+          type: 'object',
+          required: ['menuId', 'jumlah'],
+          properties: {
+            menuId: { type: 'integer', example: 1 },
+            jumlah: { type: 'integer', minimum: 1, example: 2 },
+          },
+        },
+      },
+    },
+  },
+
+  // Pembayaran schemas
+  Pembayaran: {
+    type: 'object',
+    properties: {
+      pembayaranId: { type: 'integer', example: 1 },
+      tanggal: { type: 'string', format: 'date', example: '2026-06-03' },
+      metode: {
+        type: 'string',
+        enum: ['cash', 'qris', 'debit', 'transfer'],
+        example: 'cash',
+      },
+      jumlahBayar: { type: 'integer', example: 50000 },
+      kembalian: { type: 'integer', example: 14000 },
+      pesananId: { type: 'integer', example: 1 },
+      createdAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  CreatePembayaranInput: {
+    type: 'object',
+    required: ['pesananId', 'metode', 'jumlahBayar'],
+    properties: {
+      pesananId: { type: 'integer', example: 1 },
+      metode: {
+        type: 'string',
+        enum: ['cash', 'qris', 'debit', 'transfer'],
+        example: 'cash',
+      },
+      jumlahBayar: {
+        type: 'integer',
+        minimum: 0,
+        example: 50000,
+        description: 'Harus >= total pesanan. Kembalian dihitung otomatis.',
+      },
+    },
+  },
 };
