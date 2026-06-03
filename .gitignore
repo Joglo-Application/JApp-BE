@@ -13,6 +13,9 @@ build/
 .env.*.local
 !.env.example
 
+# Secrets / SSH keys
+*.pem
+
 # Logs
 logs/
 *.log

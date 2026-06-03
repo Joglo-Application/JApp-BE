@@ -5,7 +5,9 @@ import { usersPaths } from './paths/users';
 import { bahanBakuPaths } from './paths/bahan-baku';
 import { suppliersPaths } from './paths/suppliers';
 import { menusPaths } from './paths/menus';
-import { env } from '@/config/env';
+import { pesananPaths } from './paths/pesanan';
+import { pembayaranPaths } from './paths/pembayaran';
+// import { env } from '@/config/env';
 
 export function getOpenApiSpec() {
   return {
@@ -23,21 +25,18 @@ export function getOpenApiSpec() {
         '## Default Credentials (Development)',
         '- **Admin:** `admin` / `admin123`',
         '- **Kasir:** `kasir1` / `kasir123`',
-        '',
-        '## Status Roadmap',
-        '- ✅ Phase 1-5: Setup, Auth, Master Data',
-        '- 🔜 Phase 6: POS Core (Pesanan + Pembayaran)',
-        '- 🔜 Phase 7: Inventory (PO + Transaksi Bahan)',
-        '- 🔜 Phase 8: Laporan + Reports',
+        // '',
+        // '## Status Roadmap',
+        // '- ✅ Phase 1-5: Setup, Auth, Master Data',
+        // '- 🔜 Phase 6: POS Core (Pesanan + Pembayaran)',
+        // '- 🔜 Phase 7: Inventory (PO + Transaksi Bahan)',
+        // '- 🔜 Phase 8: Laporan + Reports',
       ].join('\n'),
       contact: { name: 'POS API Team' },
     },
-    servers: [
-      {
-        url: `http://localhost:${env.PORT}/api/v1`,
-        description: 'Local development',
-      },
-    ],
+    // NOTE: kept so "Try it out" uses the /api/v1 base path. The Servers
+    // dropdown itself is hidden via CSS in docs.routes.ts.
+    servers: [{ url: '/api/v1' }],
     tags: [
       { name: 'Health', description: 'Server healthcheck' },
       { name: 'Auth', description: 'Login & user info' },
@@ -46,6 +45,8 @@ export function getOpenApiSpec() {
       { name: 'Suppliers', description: 'Master data supplier' },
       { name: 'Menus', description: 'Master data menu jual' },
       { name: 'Resep Menu', description: 'Komposisi bahan per menu (sub-resource)' },
+      { name: 'Pesanan', description: 'Transaksi penjualan POS (auto-deduct stok)' },
+      { name: 'Pembayaran', description: 'Pembayaran pesanan' },
     ],
     paths: {
       ...healthPaths,
@@ -54,6 +55,8 @@ export function getOpenApiSpec() {
       ...bahanBakuPaths,
       ...suppliersPaths,
       ...menusPaths,
+      ...pesananPaths,
+      ...pembayaranPaths,
     },
     components: {
       securitySchemes,

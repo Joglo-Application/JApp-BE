@@ -9,6 +9,8 @@ import { usersRoutes } from '@/modules/users/users.routes';
 import { bahanBakuRoutes } from '@/modules/bahan-baku/bahan-baku.routes';
 import { suppliersRoutes } from '@/modules/suppliers/suppliers.routes';
 import { menusRoutes } from '@/modules/menus/menus.routes';
+import { pesananRoutes } from '@/modules/pesanan/pesanan.routes';
+import { pembayaranRoutes } from '@/modules/pembayaran/pembayaran.routes';
 import { docsRoutes } from '@/docs/docs.routes';
 import { success } from '@/shared/response';
 import { env } from '@/config/env';
@@ -49,6 +51,8 @@ export function createApp(): Hono<AppBindings> {
   api.route('/bahan-baku', bahanBakuRoutes);
   api.route('/suppliers', suppliersRoutes);
   api.route('/menus', menusRoutes);
+  api.route('/pesanan', pesananRoutes);
+  api.route('/pembayaran', pembayaranRoutes);
 
   app.route('/api/v1', api);
   app.route('/docs', docsRoutes);
