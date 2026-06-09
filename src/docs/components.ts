@@ -440,4 +440,111 @@ export const schemas = {
       },
     },
   },
+
+  // Purchase Order (Pesanan Bahan) schemas
+  PesananBahan: {
+    type: 'object',
+    properties: {
+      pesananBahanId: { type: 'integer', example: 1 },
+      tanggal: { type: 'string', format: 'date', example: '2026-06-09' },
+      jumlah: { type: 'string', example: '50.000' },
+      status: {
+        type: 'string',
+        enum: ['pending', 'received', 'cancelled'],
+        example: 'pending',
+      },
+      bahanId: { type: 'integer', example: 1 },
+      namaBahan: { type: 'string', example: 'Kopi Bubuk' },
+      satuan: { type: 'string', example: 'gram' },
+      supplierId: { type: 'integer', example: 1 },
+      namaSupplier: { type: 'string', example: 'CV Sumber Kopi' },
+      createdAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  CreatePesananBahanInput: {
+    type: 'object',
+    required: ['bahanId', 'supplierId', 'jumlah'],
+    properties: {
+      bahanId: { type: 'integer', example: 1 },
+      supplierId: { type: 'integer', example: 1 },
+      jumlah: { type: 'string', example: '50', description: 'Decimal positif (max 3 desimal)' },
+    },
+  },
+  ReceivePesananBahanInput: {
+    type: 'object',
+    required: ['hargaSatuan'],
+    properties: {
+      hargaSatuan: { type: 'integer', minimum: 0, example: 150, description: 'Harga beli per satuan' },
+      jumlah: {
+        type: 'string',
+        example: '50',
+        description: 'Opsional. Jika kosong, pakai jumlah PO. Decimal positif.',
+      },
+    },
+  },
+
+  // Transaksi Bahan Masuk schemas
+  TransaksiMasuk: {
+    type: 'object',
+    properties: {
+      transaksiMasukId: { type: 'integer', example: 1 },
+      tanggal: { type: 'string', format: 'date', example: '2026-06-09' },
+      jumlah: { type: 'string', example: '50.000' },
+      hargaSatuan: { type: 'integer', example: 150 },
+      subtotal: { type: 'integer', example: 7500 },
+      pesananBahanId: { type: 'integer', nullable: true, example: 1 },
+      bahanId: { type: 'integer', example: 1 },
+      namaBahan: { type: 'string', example: 'Kopi Bubuk' },
+      satuan: { type: 'string', example: 'gram' },
+      supplierId: { type: 'integer', example: 1 },
+      namaSupplier: { type: 'string', example: 'CV Sumber Kopi' },
+      createdAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  CreateTransaksiMasukInput: {
+    type: 'object',
+    required: ['bahanId', 'supplierId', 'jumlah', 'hargaSatuan'],
+    properties: {
+      bahanId: { type: 'integer', example: 1 },
+      supplierId: { type: 'integer', example: 1 },
+      jumlah: { type: 'string', example: '50', description: 'Decimal positif (max 3 desimal)' },
+      hargaSatuan: { type: 'integer', minimum: 0, example: 150 },
+    },
+  },
+
+  // Transaksi Bahan Keluar schemas
+  TransaksiKeluar: {
+    type: 'object',
+    properties: {
+      transaksiKeluarId: { type: 'integer', example: 1 },
+      tanggal: { type: 'string', format: 'date', example: '2026-06-09' },
+      jumlah: { type: 'string', example: '10.000' },
+      tipeKeluar: {
+        type: 'string',
+        enum: ['sale', 'waste', 'damaged', 'expired', 'adjustment'],
+        example: 'waste',
+      },
+      keterangan: { type: 'string', nullable: true, example: 'Tumpah saat penyimpanan' },
+      bahanId: { type: 'integer', example: 1 },
+      namaBahan: { type: 'string', example: 'Kopi Bubuk' },
+      satuan: { type: 'string', example: 'gram' },
+      pesananId: { type: 'integer', nullable: true, example: null },
+      createdAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  CreateTransaksiKeluarInput: {
+    type: 'object',
+    required: ['bahanId', 'jumlah', 'tipeKeluar'],
+    properties: {
+      bahanId: { type: 'integer', example: 1 },
+      jumlah: { type: 'string', example: '10', description: 'Decimal positif (max 3 desimal)' },
+      tipeKeluar: {
+        type: 'string',
+        enum: ['waste', 'damaged', 'expired', 'adjustment'],
+        description: '`sale` tidak diperbolehkan (hanya dari penjualan otomatis)',
+        example: 'waste',
+      },
+      keterangan: { type: 'string', maxLength: 500, example: 'Tumpah saat penyimpanan' },
+    },
+  },
 };
