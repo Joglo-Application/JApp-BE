@@ -4,6 +4,9 @@ import { bahanBaku } from './schema/bahan-baku';
 import { suppliers } from './schema/suppliers';
 import { menus } from './schema/menus';
 import { resepMenu } from './schema/resep-menu';
+import { meja } from './schema/meja';
+import { member } from './schema/member';
+import { memberPoinLog } from './schema/member-poin-log';
 import { pesanan } from './schema/pesanan';
 import { detailPesanan } from './schema/detail-pesanan';
 import { pesananBahan } from './schema/pesanan-bahan';
@@ -40,8 +43,30 @@ export const resepMenuRelations = relations(resepMenu, ({ one }) => ({
   bahanBaku: one(bahanBaku, { fields: [resepMenu.bahanId], references: [bahanBaku.bahanId] }),
 }));
 
+export const mejaRelations = relations(meja, ({ many }) => ({
+  pesanan: many(pesanan),
+}));
+
+export const memberRelations = relations(member, ({ many }) => ({
+  pesanan: many(pesanan),
+  poinLog: many(memberPoinLog),
+}));
+
+export const memberPoinLogRelations = relations(memberPoinLog, ({ one }) => ({
+  member: one(member, {
+    fields: [memberPoinLog.memberId],
+    references: [member.memberId],
+  }),
+  pesanan: one(pesanan, {
+    fields: [memberPoinLog.pesananId],
+    references: [pesanan.pesananId],
+  }),
+}));
+
 export const pesananRelations = relations(pesanan, ({ one, many }) => ({
   user: one(users, { fields: [pesanan.userId], references: [users.userId] }),
+  meja: one(meja, { fields: [pesanan.mejaId], references: [meja.mejaId] }),
+  member: one(member, { fields: [pesanan.memberId], references: [member.memberId] }),
   detailPesanan: many(detailPesanan),
   pembayaran: one(pembayaran),
   transaksiBahanKeluar: many(transaksiBahanKeluar),

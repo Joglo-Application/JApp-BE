@@ -8,6 +8,7 @@ export const metodePembayaranEnum = pgEnum('metode_pembayaran', [
   'qris',
   'debit',
   'transfer',
+  'qris_netzme',
 ]);
 
 export const pembayaran = pgTable('pembayaran', {

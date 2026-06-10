@@ -14,6 +14,11 @@ const envSchema = z.object({
   }),
   JWT_EXPIRES_IN: z.string().default('7d'),
 
+  // Tarif transaksi (selaras dengan frontend: layanan 5% + pajak 5% = 10%).
+  // Pecahan desimal, mis. 0.05 = 5%.
+  SERVICE_RATE: z.coerce.number().min(0).max(1).default(0.05),
+  TAX_RATE: z.coerce.number().min(0).max(1).default(0.05),
+
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
     .default('info'),

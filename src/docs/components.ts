@@ -348,11 +348,14 @@ export const schemas = {
     type: 'object',
     properties: {
       detailId: { type: 'integer', example: 1 },
-      menuId: { type: 'integer', example: 1 },
-      namaMenu: { type: 'string', example: 'Kopi Susu' },
+      menuId: { type: 'integer', nullable: true, example: 1 },
+      namaCustom: { type: 'string', nullable: true, example: null },
+      namaMenu: { type: 'string', nullable: true, example: 'Kopi Susu' },
       jumlah: { type: 'integer', example: 2 },
       hargaSatuan: { type: 'integer', example: 18000 },
+      diskon: { type: 'integer', example: 0 },
       subtotal: { type: 'integer', example: 36000 },
+      catatan: { type: 'string', nullable: true, example: 'tanpa gula' },
     },
   },
   Pesanan: {
@@ -365,7 +368,23 @@ export const schemas = {
         enum: ['pending', 'completed', 'cancelled'],
         example: 'pending',
       },
-      total: { type: 'integer', example: 36000 },
+      subtotal: { type: 'integer', example: 36000 },
+      serviceCharge: { type: 'integer', example: 1800, description: 'Biaya layanan (default 5%)' },
+      pajak: { type: 'integer', example: 1800, description: 'PPN (default 5%)' },
+      diskon: { type: 'integer', example: 0 },
+      diskonTipe: { type: 'string', nullable: true, enum: ['amount', 'percent', null] },
+      promoNama: { type: 'string', nullable: true, example: null },
+      total: { type: 'integer', example: 39600, description: 'subtotal + layanan + pajak − diskon' },
+      orderType: {
+        type: 'string',
+        nullable: true,
+        enum: ['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood', null],
+        example: 'dine_in',
+      },
+      customerNama: { type: 'string', nullable: true, example: 'Budi' },
+      catatan: { type: 'string', nullable: true, example: null },
+      mejaId: { type: 'integer', nullable: true, example: 3 },
+      memberId: { type: 'integer', nullable: true, example: null },
       userId: { type: 'integer', example: 1 },
       createdAt: { type: 'string', format: 'date-time' },
       updatedAt: { type: 'string', format: 'date-time' },
@@ -392,14 +411,37 @@ export const schemas = {
       items: {
         type: 'array',
         minItems: 1,
-        description: 'Daftar item pesanan. Total & stok dihitung server-side dari resep menu.',
+        description:
+          'Item menu (pakai menuId) atau item custom (namaCustom + hargaSatuan). Total & stok dihitung server-side.',
         items: {
           type: 'object',
-          required: ['menuId', 'jumlah'],
+          required: ['jumlah'],
           properties: {
-            menuId: { type: 'integer', example: 1 },
+            menuId: { type: 'integer', example: 1, description: 'Wajib untuk item menu' },
+            namaCustom: { type: 'string', example: 'Es Teh Spesial', description: 'Untuk item custom' },
+            hargaSatuan: { type: 'integer', example: 8000, description: 'Wajib untuk item custom' },
             jumlah: { type: 'integer', minimum: 1, example: 2 },
+            diskon: { type: 'integer', minimum: 0, example: 0, description: 'Diskon nominal per baris' },
+            catatan: { type: 'string', example: 'tanpa gula' },
           },
+        },
+      },
+      customerNama: { type: 'string', example: 'Budi' },
+      orderType: {
+        type: 'string',
+        enum: ['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood'],
+        example: 'dine_in',
+      },
+      catatan: { type: 'string', example: 'meja pojok' },
+      mejaId: { type: 'integer', example: 3 },
+      memberId: { type: 'integer', example: 1 },
+      diskon: {
+        type: 'object',
+        description: 'Diskon level pesanan',
+        properties: {
+          tipe: { type: 'string', enum: ['amount', 'percent'], example: 'percent' },
+          nilai: { type: 'number', example: 10 },
+          promoNama: { type: 'string', example: 'OPENING' },
         },
       },
     },
@@ -413,7 +455,7 @@ export const schemas = {
       tanggal: { type: 'string', format: 'date', example: '2026-06-03' },
       metode: {
         type: 'string',
-        enum: ['cash', 'qris', 'debit', 'transfer'],
+        enum: ['cash', 'qris', 'debit', 'transfer', 'qris_netzme'],
         example: 'cash',
       },
       jumlahBayar: { type: 'integer', example: 50000 },
@@ -429,7 +471,7 @@ export const schemas = {
       pesananId: { type: 'integer', example: 1 },
       metode: {
         type: 'string',
-        enum: ['cash', 'qris', 'debit', 'transfer'],
+        enum: ['cash', 'qris', 'debit', 'transfer', 'qris_netzme'],
         example: 'cash',
       },
       jumlahBayar: {
@@ -545,6 +587,96 @@ export const schemas = {
         example: 'waste',
       },
       keterangan: { type: 'string', maxLength: 500, example: 'Tumpah saat penyimpanan' },
+    },
+  },
+
+  // Meja schemas
+  Meja: {
+    type: 'object',
+    properties: {
+      mejaId: { type: 'integer', example: 1 },
+      nomor: { type: 'string', example: 'A1' },
+      zona: { type: 'string', nullable: true, example: 'Indoor' },
+      kapasitas: { type: 'integer', example: 4 },
+      status: {
+        type: 'string',
+        enum: ['available', 'occupied', 'reserved'],
+        example: 'available',
+      },
+      createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  CreateMejaInput: {
+    type: 'object',
+    required: ['nomor'],
+    properties: {
+      nomor: { type: 'string', maxLength: 30, example: 'A1' },
+      zona: { type: 'string', maxLength: 50, example: 'Indoor' },
+      kapasitas: { type: 'integer', minimum: 1, default: 4, example: 4 },
+      status: { type: 'string', enum: ['available', 'occupied', 'reserved'], default: 'available' },
+    },
+  },
+  UpdateMejaStatusInput: {
+    type: 'object',
+    required: ['status'],
+    properties: {
+      status: { type: 'string', enum: ['available', 'occupied', 'reserved'], example: 'occupied' },
+    },
+  },
+
+  // Member schemas
+  Member: {
+    type: 'object',
+    properties: {
+      memberId: { type: 'integer', example: 1 },
+      nama: { type: 'string', example: 'Siti Aminah' },
+      noTelp: { type: 'string', nullable: true, example: '081234567890' },
+      email: { type: 'string', nullable: true, example: 'siti@mail.com' },
+      poin: { type: 'integer', example: 120 },
+      createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
+    },
+  },
+  MemberDetail: {
+    allOf: [
+      { $ref: '#/components/schemas/Member' },
+      {
+        type: 'object',
+        properties: {
+          riwayatPoin: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                poinLogId: { type: 'integer' },
+                tanggal: { type: 'string', format: 'date' },
+                tipe: { type: 'string', enum: ['earn', 'redeem', 'adjustment'] },
+                poin: { type: 'integer' },
+                pesananId: { type: 'integer', nullable: true },
+              },
+            },
+          },
+        },
+      },
+    ],
+  },
+  CreateMemberInput: {
+    type: 'object',
+    required: ['nama'],
+    properties: {
+      nama: { type: 'string', maxLength: 100, example: 'Siti Aminah' },
+      noTelp: { type: 'string', example: '081234567890' },
+      email: { type: 'string', format: 'email', example: 'siti@mail.com' },
+    },
+  },
+  AdjustPoinInput: {
+    type: 'object',
+    required: ['tipe', 'poin'],
+    properties: {
+      tipe: { type: 'string', enum: ['earn', 'redeem', 'adjustment'], example: 'earn' },
+      poin: { type: 'integer', minimum: 1, example: 10 },
+      pesananId: { type: 'integer', example: 1, description: 'Opsional, kaitkan ke pesanan' },
     },
   },
 };

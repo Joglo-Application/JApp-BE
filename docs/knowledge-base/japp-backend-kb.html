@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Joglo POS — Backend Knowledge Base</title>
+<style>
+  :root{
+    --gold:#C9A227; --gold-soft:#E3C75B; --gold-bg:#FBF4DC;
+    --dark:#3A3A3A; --gray:#6B6B6B; --line:#E4E4E4;
+    --green:#3FA34D; --red:#D9534F; --blue:#2E6CA4;
+    --ink:#262626;
+  }
+  *{box-sizing:border-box;}
+  html{font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;color:var(--ink);font-size:11.5pt;line-height:1.6;}
+  body{margin:0;}
+  h1,h2,h3{color:var(--dark);line-height:1.25;}
+  h2{font-size:19pt;border-bottom:3px solid var(--gold);padding-bottom:6px;margin-top:0;}
+  h3{font-size:13.5pt;color:var(--gold);margin-bottom:4px;margin-top:22px;}
+  p{margin:8px 0;}
+  code{background:#F2F2F2;border:1px solid #E0E0E0;border-radius:4px;padding:1px 5px;font-family:"Consolas",monospace;font-size:9.8pt;color:#9A3B2E;}
+  a{color:var(--blue);}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:10pt;}
+  th{background:var(--gold);color:#fff;text-align:left;padding:7px 9px;}
+  td{border:1px solid var(--line);padding:6px 9px;vertical-align:top;}
+  tr:nth-child(even) td{background:#FAFAF5;}
+
+  /* page system */
+  .page{padding:26mm 18mm;page-break-after:always;}
+  .page:last-child{page-break-after:auto;}
+  @page{size:A4;margin:0;}
+
+  /* cover */
+  .cover{background:linear-gradient(150deg,#C9A227 0%,#9A7B12 100%);color:#fff;height:100vh;
+         display:flex;flex-direction:column;justify-content:center;padding:0 22mm;page-break-after:always;}
+  .cover .badge{display:inline-block;border:2px solid rgba(255,255,255,.6);border-radius:30px;
+         padding:5px 16px;font-size:10pt;letter-spacing:2px;width:max-content;margin-bottom:26px;}
+  .cover h1{color:#fff;font-size:40pt;margin:0 0 8px;}
+  .cover .sub{font-size:15pt;opacity:.95;max-width:480px;}
+  .cover .meta{margin-top:40px;font-size:10.5pt;opacity:.9;border-top:1px solid rgba(255,255,255,.4);padding-top:14px;width:max-content;}
+
+  /* callouts */
+  .note{background:var(--gold-bg);border-left:5px solid var(--gold);border-radius:6px;padding:11px 15px;margin:14px 0;}
+  .analogy{background:#EAF4EC;border-left:5px solid var(--green);border-radius:6px;padding:11px 15px;margin:14px 0;}
+  .analogy b{color:var(--green);}
+  .note b{color:var(--gold);}
+
+  /* diagram boxes */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin:16px 0;}
+  .box{background:#fff;border:2px solid var(--gold);border-radius:8px;padding:9px 12px;text-align:center;
+       font-size:9.6pt;flex:1;min-width:90px;}
+  .box .t{font-weight:700;color:var(--dark);display:block;}
+  .box .d{color:var(--gray);font-size:8.6pt;}
+  .arrow{display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:18pt;padding:0 6px;font-weight:700;}
+  .stack .box{flex:none;width:100%;margin-bottom:7px;border-left-width:7px;text-align:left;}
+  .stack .layer-num{display:inline-block;background:var(--gold);color:#fff;border-radius:50%;width:22px;height:22px;
+       line-height:22px;text-align:center;font-weight:700;margin-right:8px;font-size:9pt;}
+
+  .step{border:1px solid var(--line);border-radius:8px;padding:4px 16px 10px;margin:12px 0;background:#fff;}
+  .step h3{margin-top:12px;}
+  .pill{display:inline-block;border-radius:5px;padding:1px 8px;font-size:8.6pt;font-weight:700;color:#fff;}
+  .get{background:var(--blue);} .post{background:var(--green);} .auth{background:var(--gold);} .admin{background:var(--red);}
+
+  ul{margin:8px 0;padding-left:22px;} li{margin:4px 0;}
+  .toc li{margin:6px 0;font-size:11pt;}
+  .small{font-size:9pt;color:var(--gray);}
+  .center{text-align:center;}
+  .tag{font-size:8.5pt;background:#EEE;border-radius:4px;padding:1px 6px;color:#555;}
+</style>
+</head>
+<body>
+
+<!-- ░░░ COVER ░░░ -->
+<section class="cover">
+  <span class="badge">KNOWLEDGE BASE</span>
+  <h1>Joglo POS<br>Backend</h1>
+  <div class="sub">Panduan memahami sistem di balik aplikasi kasir restoran — dijelaskan untuk semua orang, tanpa perlu latar belakang teknis.</div>
+  <div class="meta">
+    Versi 1.0 &nbsp;·&nbsp; Juni 2026<br>
+    Aplikasi: Point of Sale (POS) Restoran &nbsp;·&nbsp; Joglo-Application
+  </div>
+</section>
+
+<!-- ░░░ DAFTAR ISI ░░░ -->
+<section class="page">
+  <h2>Daftar Isi</h2>
+  <ol class="toc">
+    <li>Apa Itu "Backend"? — Analogi Sederhana</li>
+    <li>Gambaran Besar: Bagaimana Semuanya Terhubung</li>
+    <li>Teknologi yang Digunakan (dan Kenapa)</li>
+    <li>Arsitektur Berlapis — Perjalanan Sebuah Permintaan</li>
+    <li>Struktur Modular — Setiap Fitur Punya "Kamar" Sendiri</li>
+    <li>Keamanan: Kartu Akses Digital (JWT) &amp; Peran Pengguna</li>
+    <li>Alur Kerja Utama (dengan Contoh Nyata)</li>
+    <li>Daftar Fitur &amp; Layanan (Endpoint)</li>
+    <li>Di Mana Sistem Ini "Tinggal"? (Deployment)</li>
+    <li>Glosarium — Kamus Istilah</li>
+  </ol>
+  <div class="note"><b>Cara membaca dokumen ini:</b> Anda tidak perlu bisa memrogram. Setiap konsep teknis disertai <b>analogi dunia nyata</b> (ditandai kotak hijau). Bagian berkode <code>seperti ini</code> hanyalah contoh — boleh dilewati jika tidak diperlukan.</div>
+</section>
+
+<!-- ░░░ 1. APA ITU BACKEND ░░░ -->
+<section class="page">
+  <h2>1. Apa Itu "Backend"?</h2>
+  <p>Aplikasi kasir yang dilihat dan disentuh kasir di layar tablet disebut <b>frontend</b> (bagian depan). Tetapi di balik layar, ada "otak" yang menyimpan data, menghitung, dan mengingat segala sesuatu. Itulah <b>backend</b>.</p>
+
+  <div class="analogy"><b>Analogi restoran:</b> Bayangkan sebuah restoran.
+    <ul>
+      <li><b>Ruang makan</b> (yang dilihat pelanggan) = <b>Frontend</b> / aplikasi di tablet kasir.</li>
+      <li><b>Dapur + gudang + pembukuan</b> (tidak terlihat pelanggan) = <b>Backend</b>.</li>
+    </ul>
+    Pelanggan cukup memesan dari meja; mereka tidak perlu tahu cara dapur memasak atau bagaimana stok dicatat. Dapur menerima pesanan, memprosesnya, mengurangi bahan dari gudang, lalu mengirim hasilnya kembali.</div>
+
+  <p>Backend Joglo POS bertugas:</p>
+  <ul>
+    <li>Menyimpan semua data: menu, harga, stok bahan, pesanan, pembayaran, pengguna.</li>
+    <li>Menghitung otomatis: total belanja, kembalian, dan <b>pengurangan stok bahan saat ada penjualan</b>.</li>
+    <li>Menjaga keamanan: memastikan hanya orang berwenang yang bisa mengakses data tertentu.</li>
+    <li>Melayani banyak perangkat sekaligus lewat internet.</li>
+  </ul>
+
+  <div class="note"><b>Intinya:</b> Frontend = wajah yang ramah. Backend = mesin yang bekerja keras di belakang. Keduanya berkomunikasi lewat internet, saling mengirim pesan singkat berisi data.</div>
+</section>
+
+<!-- ░░░ 2. GAMBARAN BESAR ░░░ -->
+<section class="page">
+  <h2>2. Gambaran Besar: Bagaimana Semuanya Terhubung</h2>
+  <p>Ketika kasir menekan tombol di tablet, terjadi percakapan singkat lewat internet antara aplikasi dan backend. Berikut alur paling dasarnya:</p>
+
+  <div class="flow">
+    <div class="box"><span class="t">📱 Tablet Kasir</span><span class="d">Aplikasi Flutter (frontend)</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><span class="t">🌐 Internet</span><span class="d">Permintaan & jawaban (HTTPS)</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><span class="t">🧠 Backend Server</span><span class="d">Memproses & menghitung</span></div>
+    <div class="arrow">→</div>
+    <div class="box"><span class="t">🗄️ Database</span><span class="d">Tempat semua data disimpan</span></div>
+  </div>
+
+  <p>Jawaban kemudian kembali ke arah sebaliknya: dari database → backend → internet → tablet, dalam hitungan milidetik.</p>
+
+  <div class="analogy"><b>Analogi memesan makanan lewat pelayan:</b>
+    <ul>
+      <li>Anda (tablet) memberi pesanan kepada <b>pelayan</b> (internet).</li>
+      <li>Pelayan membawa pesanan ke <b>dapur</b> (backend).</li>
+      <li>Dapur mengambil bahan dari <b>gudang</b> (database), memasak, lalu menyerahkan hasilnya kembali ke pelayan.</li>
+      <li>Pelayan mengantar makanan kembali ke meja Anda.</li>
+    </ul>
+  </div>
+
+  <h3>Bahasa percakapan: "REST API"</h3>
+  <p>Backend dan frontend berbicara dengan aturan baku yang disebut <b>REST API</b>. Sederhananya, ini adalah daftar "alamat layanan" yang bisa dipanggil, misalnya:</p>
+  <ul>
+    <li><code>GET /menus</code> — "Tolong berikan daftar menu." (GET = mengambil data)</li>
+    <li><code>POST /pesanan</code> — "Tolong buatkan pesanan baru ini." (POST = mengirim/membuat data)</li>
+  </ul>
+  <p>Setiap jawaban dikemas rapi dalam format yang konsisten, sehingga aplikasi selalu tahu apakah berhasil atau gagal:</p>
+  <table>
+    <tr><th>Jika berhasil</th><th>Jika gagal</th></tr>
+    <tr><td><code>{ "success": true, "data": { ... } }</code></td><td><code>{ "success": false, "error": { ... } }</code></td></tr>
+  </table>
+</section>
+
+<!-- ░░░ 3. TEKNOLOGI ░░░ -->
+<section class="page">
+  <h2>3. Teknologi yang Digunakan (dan Kenapa)</h2>
+  <p>Setiap "bahan bangunan" dipilih dengan alasan. Berikut daftarnya dalam bahasa sederhana:</p>
+  <table>
+    <tr><th>Teknologi</th><th>Perannya</th><th>Analogi</th></tr>
+    <tr><td><b>TypeScript</b></td><td>Bahasa pemrograman utama. Versi JavaScript yang lebih aman karena memeriksa kesalahan lebih awal.</td><td>Menulis dengan pengecekan ejaan otomatis menyala.</td></tr>
+    <tr><td><b>Hono.js</b></td><td>Kerangka kerja yang menerima & mengarahkan permintaan dari internet. Ringan dan cepat.</td><td>Resepsionis yang sigap mengarahkan tamu ke ruangan yang tepat.</td></tr>
+    <tr><td><b>PostgreSQL</b></td><td>Database — tempat semua data disimpan secara permanen dan rapi dalam bentuk tabel.</td><td>Lemari arsip raksasa yang sangat terorganisir.</td></tr>
+    <tr><td><b>Drizzle ORM</b></td><td>Penerjemah antara kode program dan database, agar data mudah diambil/disimpan tanpa salah.</td><td>Penerjemah bahasa yang fasih dua arah.</td></tr>
+    <tr><td><b>Zod</b></td><td>Pemeriksa data yang masuk. Menolak data yang salah bentuk sebelum diproses.</td><td>Satpam yang memeriksa kelengkapan dokumen di pintu masuk.</td></tr>
+    <tr><td><b>JWT</b></td><td>"Kartu akses digital" untuk membuktikan identitas pengguna yang sudah login.</td><td>Gelang masuk acara yang menandakan Anda sudah terdaftar.</td></tr>
+    <tr><td><b>Swagger</b></td><td>Dokumentasi interaktif — daftar semua layanan yang bisa dicoba langsung dari browser.</td><td>Buku menu lengkap dengan tombol "coba pesan".</td></tr>
+  </table>
+  <div class="note"><b>Catatan:</b> Pilihan teknologi ini mengutamakan <b>kecepatan, keamanan, dan kemudahan dikembangkan</b> di masa depan, sehingga fitur baru bisa ditambahkan tanpa membongkar yang sudah ada.</div>
+</section>
+
+<!-- ░░░ 4. ARSITEKTUR BERLAPIS ░░░ -->
+<section class="page">
+  <h2>4. Arsitektur Berlapis — Perjalanan Sebuah Permintaan</h2>
+  <p>Setiap permintaan yang masuk tidak langsung menyentuh data. Ia melewati beberapa <b>lapisan pemeriksaan</b> secara berurutan, seperti tamu restoran yang dilayani bertahap. Ini membuat sistem aman dan teratur.</p>
+
+  <div class="stack">
+    <div class="box"><span class="layer-num">1</span><b>Pintu Masuk (Routes)</b> — Menentukan permintaan ini ditujukan ke layanan mana. <span class="small">Analogi: papan petunjuk arah.</span></div>
+    <div class="box"><span class="layer-num">2</span><b>Penjaga Keamanan (Middleware)</b> — Memeriksa kartu akses (login) &amp; hak (peran), serta mencatat aktivitas. <span class="small">Analogi: satpam + buku tamu.</span></div>
+    <div class="box"><span class="layer-num">3</span><b>Pemeriksa Formulir (Validation)</b> — Memastikan data yang dikirim lengkap &amp; benar. <span class="small">Analogi: petugas yang menolak formulir tak lengkap.</span></div>
+    <div class="box"><span class="layer-num">4</span><b>Penerima Tamu (Handler)</b> — Menerjemahkan permintaan &amp; menyiapkan jawaban. <span class="small">Analogi: pelayan yang mencatat pesanan.</span></div>
+    <div class="box"><span class="layer-num">5</span><b>Dapur (Service)</b> — <b>Otak</b> tempat semua logika &amp; perhitungan terjadi (hitung total, potong stok, dll). <span class="small">Analogi: koki yang memasak.</span></div>
+    <div class="box"><span class="layer-num">6</span><b>Gudang (Database)</b> — Membaca &amp; menyimpan data secara permanen. <span class="small">Analogi: gudang penyimpanan.</span></div>
+  </div>
+
+  <div class="note"><b>Mengapa berlapis?</b> Jika ada masalah, kita tahu persis di lapisan mana mencarinya. Jika ingin mengubah cara perhitungan, cukup sentuh lapisan "Dapur" tanpa mengganggu yang lain. Ini membuat sistem <b>mudah dirawat</b> dan <b>tahan lama</b>.</div>
+
+  <h3>Contoh nyata: satu permintaan melewati semua lapisan</h3>
+  <p>Saat kasir membuat pesanan baru (<code>POST /pesanan</code>):</p>
+  <ol>
+    <li><b>Routes:</b> "Oh, ini menuju layanan Pesanan."</li>
+    <li><b>Middleware:</b> "Kartu akses valid? Perannya kasir/admin? Boleh lanjut."</li>
+    <li><b>Validation:</b> "Daftar item lengkap dan jumlahnya masuk akal? Oke."</li>
+    <li><b>Handler:</b> "Saya terima, teruskan ke Dapur."</li>
+    <li><b>Service:</b> "Hitung total, cek stok cukup, kurangi stok bahan, simpan pesanan." ⟵ keajaiban terjadi di sini</li>
+    <li><b>Database:</b> "Tersimpan permanen. Selesai."</li>
+  </ol>
+</section>
+
+<!-- ░░░ 5. STRUKTUR MODULAR ░░░ -->
+<section class="page">
+  <h2>5. Struktur Modular — Setiap Fitur Punya "Kamar" Sendiri</h2>
+  <p>Backend tidak ditulis sebagai satu tumpukan besar yang berantakan. Ia dibagi menjadi <b>modul-modul terpisah</b>, satu untuk tiap area fitur. Masing-masing modul berisi 4 berkas dengan tugas jelas.</p>
+
+  <table>
+    <tr><th>Berkas dalam modul</th><th>Tugasnya</th></tr>
+    <tr><td><b>schema</b></td><td>Mendefinisikan bentuk data yang valid (aturan pengisian).</td></tr>
+    <tr><td><b>routes</b></td><td>Mendaftarkan alamat layanan &amp; siapa yang boleh mengaksesnya.</td></tr>
+    <tr><td><b>handler</b></td><td>Menerima permintaan &amp; menyusun jawaban.</td></tr>
+    <tr><td><b>service</b></td><td>Logika inti &amp; perhitungan.</td></tr>
+  </table>
+
+  <div class="analogy"><b>Analogi gedung perkantoran:</b> Tiap departemen (Keuangan, Gudang, HRD) punya ruangannya sendiri dengan staf &amp; aturan masing-masing. Kalau perlu menambah departemen baru, tinggal buka ruangan baru — tidak perlu merombak seluruh gedung.</div>
+
+  <h3>Modul yang sudah dibangun</h3>
+  <table>
+    <tr><th>Modul</th><th>Fungsi</th></tr>
+    <tr><td><b>Auth</b></td><td>Login &amp; identitas pengguna.</td></tr>
+    <tr><td><b>Users</b></td><td>Mengelola akun pengguna (admin).</td></tr>
+    <tr><td><b>Menus</b> (+ Resep)</td><td>Daftar menu jual &amp; komposisi bahan tiap menu.</td></tr>
+    <tr><td><b>Bahan Baku</b></td><td>Master data bahan &amp; stoknya.</td></tr>
+    <tr><td><b>Suppliers</b></td><td>Data pemasok bahan.</td></tr>
+    <tr><td><b>Pesanan</b></td><td>Transaksi penjualan (otomatis memotong stok).</td></tr>
+    <tr><td><b>Pembayaran</b></td><td>Pembayaran pesanan &amp; kembalian.</td></tr>
+    <tr><td><b>Pesanan Bahan</b></td><td>Pemesanan pembelian ke pemasok (Purchase Order).</td></tr>
+    <tr><td><b>Transaksi Masuk</b></td><td>Penerimaan bahan (stok bertambah).</td></tr>
+    <tr><td><b>Transaksi Keluar</b></td><td>Pengeluaran bahan (penjualan otomatis + manual: rusak/kedaluwarsa).</td></tr>
+  </table>
+</section>
+
+<!-- ░░░ 6. KEAMANAN ░░░ -->
+<section class="page">
+  <h2>6. Keamanan: Kartu Akses Digital &amp; Peran Pengguna</h2>
+
+  <h3>Login &amp; "Kartu Akses" (JWT)</h3>
+  <p>Saat pengguna login dengan benar, backend memberikan sebuah <b>token</b> — semacam kartu akses digital sementara. Untuk setiap permintaan berikutnya, aplikasi menunjukkan kartu ini sebagai bukti "saya sudah login dan berhak".</p>
+  <div class="analogy"><b>Analogi gelang masuk konser:</b> Anda menunjukkan tiket sekali di pintu (login), lalu diberi gelang (token). Setelah itu, cukup tunjukkan gelang untuk masuk-keluar area — tak perlu beli tiket berulang. Gelang punya masa berlaku &amp; tak bisa dipalsukan.</div>
+  <p>Kata sandi pengguna <b>tidak pernah disimpan apa adanya</b>. Ia diacak (di-<i>hash</i>) sehingga meski database bocor, kata sandi asli tetap tak terbaca.</p>
+
+  <h3>Peran Pengguna (Role)</h3>
+  <p>Tidak semua orang boleh melakukan segalanya. Ada 3 peran:</p>
+  <table>
+    <tr><th>Peran</th><th>Boleh apa</th></tr>
+    <tr><td><b>Admin</b></td><td>Akses penuh: kelola menu, bahan, pengguna, inventaris, transaksi.</td></tr>
+    <tr><td><b>Kasir</b></td><td>Operasional penjualan: buat pesanan, terima pembayaran, lihat menu.</td></tr>
+    <tr><td><b>Owner</b></td><td>Pemilik: melihat data &amp; laporan (peran pemantauan).</td></tr>
+  </table>
+  <div class="note"><b>Contoh aturan:</b> Seorang <b>kasir</b> bisa membuat pesanan, tetapi <b>tidak bisa</b> mengubah daftar menu atau menambah pengguna baru — itu hanya hak <b>admin</b>. Backend menolak otomatis jika peran tak sesuai.</div>
+</section>
+
+<!-- ░░░ 7. ALUR KERJA UTAMA ░░░ -->
+<section class="page">
+  <h2>7. Alur Kerja Utama (dengan Contoh Nyata)</h2>
+  <p>Berikut beberapa alur terpenting, diceritakan langkah demi langkah.</p>
+
+  <div class="step">
+    <h3>Alur A — Login</h3>
+    <p><span class="pill post">KIRIM</span> <code>POST /auth/login</code></p>
+    <ol>
+      <li>Kasir memasukkan username &amp; kata sandi.</li>
+      <li>Backend memeriksa kecocokan dengan data tersimpan (kata sandi yang teracak).</li>
+      <li>Jika benar → backend mengirim <b>kartu akses (token)</b>. Jika salah → ditolak dengan pesan jelas.</li>
+      <li>Aplikasi menyimpan token untuk dipakai pada semua aksi berikutnya.</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <h3>Alur B — Menampilkan Menu</h3>
+    <p><span class="pill get">AMBIL</span> <code>GET /menus</code> &nbsp;<span class="pill auth">perlu login</span></p>
+    <ol>
+      <li>Aplikasi meminta daftar menu (bisa disaring &amp; dibagi per halaman).</li>
+      <li>Backend mengambilnya dari database &amp; mengembalikan nama, harga, kategori, status aktif.</li>
+      <li>Tablet menampilkannya sebagai grid produk untuk dipilih kasir.</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <h3>Alur C — Membuat Pesanan ⭐ (fitur inti)</h3>
+    <p><span class="pill post">KIRIM</span> <code>POST /pesanan</code> &nbsp;<span class="pill auth">login</span> <span class="pill admin">admin/kasir</span></p>
+    <p>Ini bagian terpenting. Semua terjadi dalam satu tindakan <b>menyeluruh atau batal total</b> (tidak setengah-setengah):</p>
+    <ol>
+      <li>Kasir memilih item + jumlah, lalu menyimpan pesanan.</li>
+      <li>Backend <b>menghitung total sendiri</b> dari harga resmi (tidak mempercayai harga dari aplikasi — demi keamanan).</li>
+      <li>Backend melihat <b>resep</b> tiap menu, lalu menghitung total bahan yang dipakai.</li>
+      <li>Mengecek stok cukup. Jika kurang → pesanan <b>ditolak</b> dengan pesan jelas.</li>
+      <li>Jika cukup → <b>stok bahan otomatis berkurang</b>, pesanan tersimpan, &amp; pemakaian bahan dicatat.</li>
+    </ol>
+    <div class="analogy"><b>Analogi:</b> Memesan 2 kopi otomatis mengurangi stok biji kopi &amp; susu di gudang sesuai resep — tanpa kasir menghitung manual. Jika stok susu habis, sistem menolak sebelum transaksi terjadi.</div>
+  </div>
+
+  <div class="step">
+    <h3>Alur D — Pembayaran</h3>
+    <p><span class="pill post">KIRIM</span> <code>POST /pembayaran</code></p>
+    <ol>
+      <li>Kasir memilih metode (tunai/QRIS/debit) &amp; memasukkan jumlah bayar.</li>
+      <li>Backend memastikan jumlah bayar ≥ total, lalu <b>menghitung kembalian</b>.</li>
+      <li>Status pesanan berubah menjadi <b>"selesai" (completed)</b>.</li>
+      <li>Tidak bisa dibayar dua kali — sistem menolak pembayaran ganda.</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <h3>Alur E — Membeli Bahan ke Pemasok (Inventaris)</h3>
+    <p><span class="pill post">KIRIM</span> <code>POST /pesanan-bahan</code> → <code>.../receive</code></p>
+    <ol>
+      <li>Admin membuat pesanan pembelian (PO) ke pemasok — statusnya "menunggu".</li>
+      <li>Saat barang datang, admin menekan <b>"terima"</b>.</li>
+      <li>Backend otomatis <b>menambah stok</b> bahan &amp; mencatat harga beli terbaru.</li>
+      <li>Jika ada bahan rusak/kedaluwarsa, dicatat lewat <b>Transaksi Keluar</b> (stok berkurang dengan alasan).</li>
+    </ol>
+    <div class="note"><b>Lengkap dua arah:</b> stok <b>berkurang</b> otomatis saat menjual, &amp; <b>bertambah</b> saat menerima pembelian. Semua pergerakan tercatat rapi.</div>
+  </div>
+</section>
+
+<!-- ░░░ 8. DAFTAR FITUR ░░░ -->
+<section class="page">
+  <h2>8. Daftar Fitur &amp; Layanan (Endpoint)</h2>
+  <p>Berikut ringkasan layanan yang tersedia. <span class="pill get">AMBIL</span> = membaca data, <span class="pill post">KIRIM</span> = membuat/mengubah data.</p>
+
+  <table>
+    <tr><th>Area</th><th>Layanan</th><th>Keterangan</th></tr>
+    <tr><td>Auth</td><td><span class="pill post">KIRIM</span> /auth/login<br><span class="pill get">AMBIL</span> /auth/me</td><td>Login &amp; cek identitas.</td></tr>
+    <tr><td>Users</td><td><span class="pill get">AMBIL</span>/<span class="pill post">KIRIM</span> /users</td><td>Kelola akun (admin).</td></tr>
+    <tr><td>Menu</td><td><span class="pill get">AMBIL</span>/<span class="pill post">KIRIM</span> /menus<br>/menus/:id/resep</td><td>Menu jual &amp; resepnya.</td></tr>
+    <tr><td>Bahan Baku</td><td><span class="pill get">AMBIL</span>/<span class="pill post">KIRIM</span> /bahan-baku</td><td>Stok bahan.</td></tr>
+    <tr><td>Supplier</td><td><span class="pill get">AMBIL</span>/<span class="pill post">KIRIM</span> /suppliers</td><td>Data pemasok.</td></tr>
+    <tr><td>Pesanan</td><td><span class="pill post">KIRIM</span> /pesanan<br>/pesanan/:id/cancel</td><td>Penjualan + auto potong stok.</td></tr>
+    <tr><td>Pembayaran</td><td><span class="pill post">KIRIM</span> /pembayaran</td><td>Bayar + kembalian.</td></tr>
+    <tr><td>Purchase Order</td><td><span class="pill post">KIRIM</span> /pesanan-bahan<br>/.../receive · /.../cancel</td><td>Beli bahan ke pemasok.</td></tr>
+    <tr><td>Transaksi Masuk</td><td><span class="pill post">KIRIM</span> /transaksi-masuk</td><td>Terima bahan → stok naik.</td></tr>
+    <tr><td>Transaksi Keluar</td><td><span class="pill post">KIRIM</span> /transaksi-keluar</td><td>Bahan rusak/adjustment → stok turun.</td></tr>
+  </table>
+
+  <div class="note"><b>Dokumentasi hidup:</b> Semua layanan ini dapat dilihat &amp; dicoba langsung lewat halaman <b>Swagger</b> di alamat <code>/docs</code> pada server — seperti "buku menu interaktif" untuk pengembang.</div>
+</section>
+
+<!-- ░░░ 9. DEPLOYMENT ░░░ -->
+<section class="page">
+  <h2>9. Di Mana Sistem Ini "Tinggal"?</h2>
+  <p>Backend tidak berjalan di tablet kasir, melainkan di sebuah <b>komputer server</b> yang menyala 24 jam di pusat data (cloud) milik Amazon (AWS), sehingga bisa diakses dari mana saja lewat internet.</p>
+
+  <div class="flow">
+    <div class="box"><span class="t">🖥️ Server (EC2)</span><span class="d">Menjalankan program backend tanpa henti</span></div>
+    <div class="arrow">↔</div>
+    <div class="box"><span class="t">🗄️ Database (RDS)</span><span class="d">Menyimpan data, terlindung &amp; tertutup dari luar</span></div>
+  </div>
+
+  <div class="analogy"><b>Analogi:</b> Server (EC2) ibarat <b>kantor pusat</b> yang selalu buka. Database (RDS) ibarat <b>brankas di ruang dalam</b> — hanya bisa diakses dari kantor pusat, tidak langsung dari jalanan, demi keamanan data.</div>
+
+  <h3>Bagaimana pembaruan diterapkan?</h3>
+  <p>Saat ada perbaikan atau fitur baru, kode dikirim ke pusat penyimpanan kode (GitHub), lalu server "menarik" versi terbaru &amp; dijalankan ulang. Dokumentasi (Swagger) ikut diperbarui otomatis.</p>
+  <div class="note"><b>Aman:</b> data sensitif (kata sandi database, kunci rahasia) disimpan terpisah di server &amp; tidak pernah ikut tersimpan di kode publik.</div>
+</section>
+
+<!-- ░░░ 10. GLOSARIUM ░░░ -->
+<section class="page">
+  <h2>10. Glosarium — Kamus Istilah</h2>
+  <table>
+    <tr><th>Istilah</th><th>Arti sederhana</th></tr>
+    <tr><td><b>Backend</b></td><td>"Otak" sistem di balik layar yang menyimpan data &amp; menghitung.</td></tr>
+    <tr><td><b>Frontend</b></td><td>Aplikasi yang dilihat &amp; disentuh pengguna (tablet kasir).</td></tr>
+    <tr><td><b>API</b></td><td>Daftar "layanan" yang bisa dipanggil aplikasi untuk meminta sesuatu ke backend.</td></tr>
+    <tr><td><b>Endpoint</b></td><td>Satu alamat layanan tertentu, mis. <code>/menus</code>.</td></tr>
+    <tr><td><b>Database</b></td><td>Tempat penyimpanan data permanen, tersusun dalam tabel.</td></tr>
+    <tr><td><b>Server</b></td><td>Komputer yang menyala terus untuk menjalankan backend.</td></tr>
+    <tr><td><b>Token / JWT</b></td><td>"Kartu akses digital" pembukti identitas setelah login.</td></tr>
+    <tr><td><b>Role / Peran</b></td><td>Tingkat hak akses pengguna (admin, kasir, owner).</td></tr>
+    <tr><td><b>Resep</b></td><td>Daftar bahan + jumlah yang dipakai untuk membuat satu menu.</td></tr>
+    <tr><td><b>Stok</b></td><td>Jumlah bahan yang tersedia di gudang.</td></tr>
+    <tr><td><b>Transaksi atomik</b></td><td>Serangkaian langkah yang berhasil semua atau gagal total — tak ada kondisi setengah jadi.</td></tr>
+    <tr><td><b>Deployment</b></td><td>Proses menempatkan &amp; menjalankan program di server agar bisa dipakai.</td></tr>
+    <tr><td><b>Swagger</b></td><td>Halaman dokumentasi interaktif untuk melihat &amp; mencoba semua layanan API.</td></tr>
+    <tr><td><b>Cloud (AWS)</b></td><td>Pusat data sewaan tempat server &amp; database berjalan.</td></tr>
+  </table>
+
+  <div class="analogy" style="margin-top:26px;"><b>Penutup:</b> Backend Joglo POS dirancang agar <b>aman, teratur, dan mudah dikembangkan</b>. Dengan memahami analogi "restoran + dapur + gudang" di dokumen ini, siapa pun dapat membayangkan bagaimana setiap penjualan, pembayaran, dan pergerakan stok diproses di balik layar — tanpa perlu membaca satu baris kode pun.</div>
+
+  <p class="center small" style="margin-top:30px;">— Akhir Dokumen —<br>Joglo POS Backend · Knowledge Base v1.0 · Juni 2026</p>
+</section>
+
+</body>
+</html>
