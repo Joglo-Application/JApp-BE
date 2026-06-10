@@ -10,6 +10,8 @@ import { pembayaranPaths } from './paths/pembayaran';
 import { pesananBahanPaths } from './paths/pesanan-bahan';
 import { transaksiMasukPaths } from './paths/transaksi-masuk';
 import { transaksiKeluarPaths } from './paths/transaksi-keluar';
+import { mejaPaths } from './paths/meja';
+import { memberPaths } from './paths/member';
 // import { env } from '@/config/env';
 
 export function getOpenApiSpec() {
@@ -53,6 +55,8 @@ export function getOpenApiSpec() {
       { name: 'Pesanan Bahan (PO)', description: 'Purchase order ke supplier' },
       { name: 'Transaksi Masuk', description: 'Penerimaan bahan baku (stok bertambah)' },
       { name: 'Transaksi Keluar', description: 'Pengeluaran bahan (penjualan + waste/adjustment)' },
+      { name: 'Meja', description: 'Manajemen meja & status' },
+      { name: 'Member', description: 'Member / loyalty & poin' },
     ],
     paths: {
       ...healthPaths,
@@ -66,6 +70,8 @@ export function getOpenApiSpec() {
       ...pesananBahanPaths,
       ...transaksiMasukPaths,
       ...transaksiKeluarPaths,
+      ...mejaPaths,
+      ...memberPaths,
     },
     components: {
       securitySchemes,
