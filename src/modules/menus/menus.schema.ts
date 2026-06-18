@@ -12,6 +12,10 @@ export const createMenuSchema = z.object({
   kategori: z.string().trim().min(1).max(50),
   harga: z.number().int().min(0),
   isActive: z.boolean().default(true),
+  // Stok produk untuk tampilan inventori POS.
+  stok: z.number().int().min(0).default(0),
+  stokMinimum: z.number().int().min(0).default(0),
+  imageUrl: z.string().trim().max(255).optional(),
 });
 
 export const updateMenuSchema = z
@@ -20,6 +24,9 @@ export const updateMenuSchema = z
     kategori: z.string().trim().min(1).max(50).optional(),
     harga: z.number().int().min(0).optional(),
     isActive: z.boolean().optional(),
+    stok: z.number().int().min(0).optional(),
+    stokMinimum: z.number().int().min(0).optional(),
+    imageUrl: z.string().trim().max(255).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Minimal satu field harus diisi',

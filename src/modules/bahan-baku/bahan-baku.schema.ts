@@ -13,6 +13,9 @@ export const createBahanBakuSchema = z.object({
   stok: decimalString.default('0'),
   stokMinimum: decimalString.default('0'),
   hargaSatuan: z.number().int().min(0).default(0),
+  // Untuk tampilan stok gudang owner.
+  kategori: z.string().trim().max(50).optional(),
+  imageUrl: z.string().trim().max(255).optional(),
 });
 
 export const updateBahanBakuSchema = z
@@ -22,6 +25,8 @@ export const updateBahanBakuSchema = z
     stok: decimalString.optional(),
     stokMinimum: decimalString.optional(),
     hargaSatuan: z.number().int().min(0).optional(),
+    kategori: z.string().trim().max(50).nullable().optional(),
+    imageUrl: z.string().trim().max(255).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Minimal satu field harus diisi',
