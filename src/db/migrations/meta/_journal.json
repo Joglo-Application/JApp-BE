@@ -15,6 +15,13 @@
       "when": 1781063403189,
       "tag": "0001_phase_align_meja_member_pesanan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781785953840,
+      "tag": "0002_inventori_stok_gudang_columns",
+      "breakpoints": true
     }
   ]
 }
