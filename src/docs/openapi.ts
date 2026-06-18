@@ -12,6 +12,9 @@ import { transaksiMasukPaths } from './paths/transaksi-masuk';
 import { transaksiKeluarPaths } from './paths/transaksi-keluar';
 import { mejaPaths } from './paths/meja';
 import { memberPaths } from './paths/member';
+import { transaksiPaths } from './paths/transaksi';
+import { inventoriPaths } from './paths/inventori';
+import { stokGudangPaths } from './paths/stok-gudang';
 // import { env } from '@/config/env';
 
 export function getOpenApiSpec() {
@@ -57,6 +60,9 @@ export function getOpenApiSpec() {
       { name: 'Transaksi Keluar', description: 'Pengeluaran bahan (penjualan + waste/adjustment)' },
       { name: 'Meja', description: 'Manajemen meja & status' },
       { name: 'Member', description: 'Member / loyalty & poin' },
+      { name: 'Transaksi', description: 'Riwayat transaksi penjualan (read-only, untuk FE)' },
+      { name: 'Inventori', description: 'Stok produk untuk POS (dari menu)' },
+      { name: 'Stok Gudang', description: 'Stok bahan baku untuk owner' },
     ],
     paths: {
       ...healthPaths,
@@ -72,6 +78,9 @@ export function getOpenApiSpec() {
       ...transaksiKeluarPaths,
       ...mejaPaths,
       ...memberPaths,
+      ...transaksiPaths,
+      ...inventoriPaths,
+      ...stokGudangPaths,
     },
     components: {
       securitySchemes,
