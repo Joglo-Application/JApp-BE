@@ -7,6 +7,10 @@ export const menus = pgTable('menus', {
   kategori: varchar('kategori', { length: 50 }).notNull(),
   harga: integer('harga').notNull(),
   isActive: boolean('is_active').notNull().default(true),
+  // Stok level produk untuk tampilan inventori POS (GET /inventori).
+  stok: integer('stok').notNull().default(0),
+  stokMinimum: integer('stok_minimum').notNull().default(0),
+  imageUrl: varchar('image_url', { length: 255 }),
   ...timestamps,
 });
 
