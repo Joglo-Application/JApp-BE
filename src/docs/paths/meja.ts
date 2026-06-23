@@ -23,7 +23,7 @@ export const mejaPaths = {
         { name: 'page', in: 'query', schema: { type: 'integer', default: 1 } },
         { name: 'limit', in: 'query', schema: { type: 'integer', default: 50 } },
         { name: 'zona', in: 'query', schema: { type: 'string' } },
-        { name: 'status', in: 'query', schema: { type: 'string', enum: ['available', 'occupied', 'reserved'] } },
+        { name: 'status', in: 'query', schema: { type: 'string', enum: ['available', 'occupied', 'reserved', 'blocked'] } },
       ],
       responses: {
         '200': {
@@ -91,7 +91,7 @@ export const mejaPaths = {
     patch: {
       tags: ['Meja'],
       summary: 'Update status meja',
-      description: '**Admin & Kasir.** Mengubah status meja (available/occupied/reserved).',
+      description: '**Admin & Kasir.** Mengubah status meja (available/occupied/reserved/blocked).',
       parameters: [idPathParam],
       requestBody: {
         required: true,

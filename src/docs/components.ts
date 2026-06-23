@@ -600,7 +600,7 @@ export const schemas = {
       kapasitas: { type: 'integer', example: 4 },
       status: {
         type: 'string',
-        enum: ['available', 'occupied', 'reserved'],
+        enum: ['available', 'occupied', 'reserved', 'blocked'],
         example: 'available',
       },
       createdAt: { type: 'string', format: 'date-time' },
@@ -614,14 +614,14 @@ export const schemas = {
       nomor: { type: 'string', maxLength: 30, example: 'A1' },
       zona: { type: 'string', maxLength: 50, example: 'Indoor' },
       kapasitas: { type: 'integer', minimum: 1, default: 4, example: 4 },
-      status: { type: 'string', enum: ['available', 'occupied', 'reserved'], default: 'available' },
+      status: { type: 'string', enum: ['available', 'occupied', 'reserved', 'blocked'], default: 'available' },
     },
   },
   UpdateMejaStatusInput: {
     type: 'object',
     required: ['status'],
     properties: {
-      status: { type: 'string', enum: ['available', 'occupied', 'reserved'], example: 'occupied' },
+      status: { type: 'string', enum: ['available', 'occupied', 'reserved', 'blocked'], example: 'occupied' },
     },
   },
 

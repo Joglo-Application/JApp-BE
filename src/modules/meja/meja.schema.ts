@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const statusEnum = z.enum(['available', 'occupied', 'reserved']);
+const statusEnum = z.enum(['available', 'occupied', 'reserved', 'blocked']);
 
 export const createMejaSchema = z.object({
   nomor: z.string().trim().min(1).max(30),

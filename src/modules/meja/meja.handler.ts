@@ -10,7 +10,12 @@ export const listMejaHandler: Handler<AppBindings> = async (c) => {
     page: Number(q.page ?? 1),
     limit: Number(q.limit ?? 50),
     zona: q.zona,
-    status: q.status as 'available' | 'occupied' | 'reserved' | undefined,
+    status: q.status as
+      | 'available'
+      | 'occupied'
+      | 'reserved'
+      | 'blocked'
+      | undefined,
   });
   return c.json(paginated(result.data, result.pagination));
 };
@@ -33,7 +38,9 @@ export const updateMejaHandler: Handler<AppBindings> = async (c) => {
 
 export const updateMejaStatusHandler: Handler<AppBindings> = async (c) => {
   const id = Number(c.req.param('id'));
-  const { status } = (await c.req.json()) as { status: 'available' | 'occupied' | 'reserved' };
+  const { status } = (await c.req.json()) as {
+    status: 'available' | 'occupied' | 'reserved' | 'blocked';
+  };
   return c.json(success(await service.updateMejaStatus(id, status)));
 };
 
