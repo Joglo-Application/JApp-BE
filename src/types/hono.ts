@@ -1,7 +1,15 @@
+export type UserRole =
+  | 'admin'
+  | 'kasir'
+  | 'owner'
+  | 'dapur'
+  | 'supervisor'
+  | 'gudang';
+
 export interface AuthUser {
   userId: number;
   username: string;
-  role: 'admin' | 'kasir' | 'owner';
+  role: UserRole;
 }
 
 export interface AppVariables {

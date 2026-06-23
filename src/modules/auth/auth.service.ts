@@ -5,6 +5,7 @@ import { UnauthorizedError, NotFoundError } from '@/shared/errors';
 import { verifyPassword } from '@/utils/password';
 import { signToken } from '@/utils/jwt';
 import type { LoginInput } from './auth.schema';
+import type { UserRole } from '@/types/hono';
 
 export interface LoginResult {
   token: string;
@@ -12,7 +13,7 @@ export interface LoginResult {
     userId: number;
     namaUser: string;
     username: string;
-    role: 'admin' | 'kasir' | 'owner';
+    role: UserRole;
   };
 }
 
