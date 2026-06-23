@@ -55,7 +55,10 @@ export async function updateMeja(id: number, input: UpdateMejaInput) {
   return updated;
 }
 
-export async function updateMejaStatus(id: number, status: 'available' | 'occupied' | 'reserved') {
+export async function updateMejaStatus(
+  id: number,
+  status: 'available' | 'occupied' | 'reserved' | 'blocked',
+) {
   await getMejaById(id);
   const [updated] = await db.update(meja).set({ status }).where(eq(meja.mejaId, id)).returning();
   return updated;

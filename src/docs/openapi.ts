@@ -34,6 +34,7 @@ export function getOpenApiSpec() {
         '## Default Credentials (Development)',
         '- **Admin:** `admin` / `admin123`',
         '- **Kasir:** `kasir1` / `kasir123`',
+        '- **Dapur:** `dapur1` / `dapur123`',
         // '',
         // '## Status Roadmap',
         // '- ✅ Phase 1-5: Setup, Auth, Master Data',

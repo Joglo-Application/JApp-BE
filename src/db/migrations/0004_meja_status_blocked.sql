@@ -1,0 +1,1 @@
+ALTER TYPE "public"."meja_status" ADD VALUE 'blocked';

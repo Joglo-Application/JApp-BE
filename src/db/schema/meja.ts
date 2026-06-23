@@ -5,6 +5,7 @@ export const mejaStatusEnum = pgEnum('meja_status', [
   'available',
   'occupied',
   'reserved',
+  'blocked',
 ]);
 
 export const meja = pgTable('meja', {

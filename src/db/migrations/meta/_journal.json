@@ -29,6 +29,13 @@
       "when": 1782115923301,
       "tag": "0003_role_enum_dapur_spv_gudang",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782203124264,
+      "tag": "0004_meja_status_blocked",
+      "breakpoints": true
     }
   ]
 }
