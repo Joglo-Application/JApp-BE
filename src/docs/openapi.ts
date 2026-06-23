@@ -15,6 +15,7 @@ import { memberPaths } from './paths/member';
 import { transaksiPaths } from './paths/transaksi';
 import { inventoriPaths } from './paths/inventori';
 import { stokGudangPaths } from './paths/stok-gudang';
+import { kitchenPaths } from './paths/kitchen';
 // import { env } from '@/config/env';
 
 export function getOpenApiSpec() {
@@ -63,6 +64,7 @@ export function getOpenApiSpec() {
       { name: 'Transaksi', description: 'Riwayat transaksi penjualan (read-only, untuk FE)' },
       { name: 'Inventori', description: 'Stok produk untuk POS (dari menu)' },
       { name: 'Stok Gudang', description: 'Stok bahan baku untuk owner' },
+      { name: 'Kitchen', description: 'Order aktif untuk dapur' },
     ],
     paths: {
       ...healthPaths,
@@ -81,6 +83,7 @@ export function getOpenApiSpec() {
       ...transaksiPaths,
       ...inventoriPaths,
       ...stokGudangPaths,
+      ...kitchenPaths,
     },
     components: {
       securitySchemes,
