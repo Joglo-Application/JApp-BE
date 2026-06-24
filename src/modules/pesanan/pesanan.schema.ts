@@ -47,7 +47,7 @@ export const pesananIdParamSchema = z.object({
 export const listPesananQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  status: z.enum(['held', 'pending', 'completed', 'cancelled']).optional(),
+  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).optional(),
   mejaId: z.coerce.number().int().positive().optional(),
 });
 

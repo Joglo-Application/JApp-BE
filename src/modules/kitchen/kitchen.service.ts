@@ -16,7 +16,7 @@ interface KitchenItem {
 }
 
 /**
- * Order aktif untuk dapur = pesanan berstatus `pending` (belum dibayar).
+ * Order aktif untuk dapur = pesanan berstatus `in_progress` (sedang diproses).
  * Saat pesanan dibayar (status `completed`) otomatis hilang dari daftar ini.
  * Dipetakan ke bentuk yang diharapkan `KitchenOrderModel.fromJson` di FE.
  */
@@ -28,7 +28,8 @@ export async function listActiveOrders() {
       createdAt: pesanan.createdAt,
     })
     .from(pesanan)
-    .where(eq(pesanan.status, 'pending'))
+    // Order yang sedang diproses dapur (sebelumnya 'pending').
+    .where(eq(pesanan.status, 'in_progress'))
     // FIFO: yang paling lama masuk tampil duluan.
     .orderBy(asc(pesanan.createdAt));
 

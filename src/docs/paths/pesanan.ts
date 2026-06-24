@@ -11,7 +11,7 @@ export const pesananPaths = {
         {
           name: 'status',
           in: 'query',
-          schema: { type: 'string', enum: ['held', 'pending', 'completed', 'cancelled'] },
+          schema: { type: 'string', enum: ['pending', 'in_progress', 'completed', 'cancelled'] },
         },
         {
           name: 'mejaId',
@@ -38,7 +38,7 @@ export const pesananPaths = {
         'stok bahan baku dipotong otomatis berdasarkan resep menu, dan transaksi bahan ' +
         'keluar (tipe `sale`) dicatat. Semuanya atomik dalam satu transaksi DB.\n\n' +
         '⚠️ Pesanan **dine_in wajib menyertakan `mejaId`** (jika tidak → 422).\n\n' +
-        '💡 Kirim `hold: true` untuk menyimpan sebagai **draft (status `held`)**: ' +
+        '💡 Kirim `hold: true` untuk menyimpan sebagai **draft (status `pending`)**: ' +
         'tidak memotong stok, tidak masuk dapur, validasi metode/meja di-relax. ' +
         'Dipakai fitur "Pending" (parkir cart).',
       requestBody: {
@@ -102,11 +102,11 @@ export const pesananPaths = {
     },
     delete: {
       tags: ['Pesanan'],
-      summary: 'Hapus draft held',
+      summary: 'Hapus draft (pending)',
       description:
-        '**Admin & Kasir.** Menghapus pesanan **draft (`held`)** — dipakai saat draft ' +
-        'di-Pilih/Gabung kembali ke POS. Hanya status `held` yang boleh dihapus ' +
-        '(pending/completed/cancelled → 400).',
+        '**Admin & Kasir.** Menghapus pesanan **draft (status `pending`)** — dipakai saat draft ' +
+        'di-Pilih/Gabung kembali ke POS. Hanya status `pending` yang boleh dihapus ' +
+        '(in_progress/completed/cancelled → 400).',
       parameters: [idPathParam],
       responses: {
         '200': {
@@ -116,7 +116,7 @@ export const pesananPaths = {
           },
         },
         '400': {
-          description: 'Pesanan bukan draft held',
+          description: 'Pesanan bukan draft (pending)',
           content: {
             'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } },
           },

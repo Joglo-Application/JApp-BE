@@ -43,6 +43,13 @@
       "when": 1782318668089,
       "tag": "0005_pesanan_status_held",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782321368352,
+      "tag": "0006_rename_pesanan_status",
+      "breakpoints": true
     }
   ]
 }

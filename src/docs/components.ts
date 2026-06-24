@@ -365,8 +365,8 @@ export const schemas = {
       tanggal: { type: 'string', format: 'date', example: '2026-06-03' },
       status: {
         type: 'string',
-        enum: ['held', 'pending', 'completed', 'cancelled'],
-        example: 'pending',
+        enum: ['pending', 'in_progress', 'completed', 'cancelled'],
+        example: 'in_progress',
       },
       subtotal: { type: 'integer', example: 36000 },
       serviceCharge: { type: 'integer', example: 1800, description: 'Biaya layanan (default 5%)' },
@@ -439,7 +439,7 @@ export const schemas = {
         type: 'boolean',
         default: false,
         description:
-          'true = simpan sebagai draft (status held): tanpa potong stok, tanpa masuk dapur.',
+          'true = simpan sebagai draft (status pending): tanpa potong stok, tanpa masuk dapur.',
       },
       diskon: {
         type: 'object',
