@@ -10,7 +10,7 @@ export const listPesananHandler: Handler<AppBindings> = async (c) => {
   const result = await service.listPesanan({
     page: Number(q.page ?? 1),
     limit: Number(q.limit ?? 10),
-    status: q.status as 'pending' | 'completed' | 'cancelled' | undefined,
+    status: q.status as 'held' | 'pending' | 'completed' | 'cancelled' | undefined,
     mejaId: q.mejaId ? Number(q.mejaId) : undefined,
   });
   return c.json(paginated(result.data, result.pagination));
@@ -36,4 +36,10 @@ export const cancelPesananHandler: Handler<AppBindings> = async (c) => {
   const id = Number(c.req.param('id'));
   const data = await service.cancelPesanan(user.userId, id);
   return c.json(success(data));
+};
+
+export const deletePesananHandler: Handler<AppBindings> = async (c) => {
+  const id = Number(c.req.param('id'));
+  await service.deletePesanan(id);
+  return c.json(success({ deleted: true }));
 };

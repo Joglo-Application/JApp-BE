@@ -39,6 +39,9 @@ function computeOrderDiscount(subtotal: number, diskon?: OrderDiscountInput): nu
  */
 export async function createPesanan(userId: number, input: CreatePesananInput) {
   const newId = await db.transaction(async (tx) => {
+    // Draft "held" (parkir): tidak potong stok, tidak masuk dapur.
+    const isHold = input.hold === true;
+
     // 1. Validasi relasi opsional
     if (input.mejaId !== undefined) {
       const [m] = await tx.select({ id: meja.mejaId }).from(meja).where(eq(meja.mejaId, input.mejaId)).limit(1);
@@ -77,12 +80,15 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       resepByMenu.set(r.menuId, arr);
     }
 
+    // Draft held belum dimasak → jangan hitung/potong stok.
     const required = new Map<number, number>();
-    for (const item of input.items) {
-      if (item.menuId === undefined) continue;
-      for (const r of resepByMenu.get(item.menuId) ?? []) {
-        const need = Number(r.jumlahPakai) * item.jumlah;
-        required.set(r.bahanId, (required.get(r.bahanId) ?? 0) + need);
+    if (!isHold) {
+      for (const item of input.items) {
+        if (item.menuId === undefined) continue;
+        for (const r of resepByMenu.get(item.menuId) ?? []) {
+          const need = Number(r.jumlahPakai) * item.jumlah;
+          required.set(r.bahanId, (required.get(r.bahanId) ?? 0) + need);
+        }
       }
     }
 
@@ -140,7 +146,7 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       .insert(pesanan)
       .values({
         userId,
-        status: 'pending',
+        status: isHold ? 'held' : 'pending',
         subtotal,
         serviceCharge,
         pajak,
@@ -284,4 +290,19 @@ export async function cancelPesanan(userId: number, id: number) {
 
     return updated;
   });
+}
+
+/**
+ * Menghapus draft "held" (dipakai saat draft di-Pilih/Gabung kembali ke POS,
+ * agar tidak dobel). Hanya pesanan berstatus `held` yang boleh dihapus —
+ * pesanan nyata (pending/completed/cancelled) tidak.
+ */
+export async function deletePesanan(id: number) {
+  const [row] = await db.select().from(pesanan).where(eq(pesanan.pesananId, id)).limit(1);
+  if (!row) throw new NotFoundError('Pesanan tidak ditemukan');
+  if (row.status !== 'held') {
+    throw new BadRequestError('Hanya pesanan draft (held) yang dapat dihapus');
+  }
+  // detail_pesanan ON DELETE CASCADE; held tidak punya pembayaran/stok keluar.
+  await db.delete(pesanan).where(eq(pesanan.pesananId, id));
 }

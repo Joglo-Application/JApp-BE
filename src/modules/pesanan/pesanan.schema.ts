@@ -30,9 +30,12 @@ export const createPesananSchema = z
     mejaId: z.number().int().positive().optional(),
     memberId: z.number().int().positive().optional(),
     diskon: orderDiscountSchema.optional(),
+    // true = simpan sebagai draft "held" (parkir): tanpa potong stok & tanpa
+    // masuk dapur. Validasi metode/meja di-relax karena ini belum final.
+    hold: z.boolean().default(false),
   })
-  // Pesanan dine-in wajib memilih meja.
-  .refine((d) => d.orderType !== 'dine_in' || d.mejaId !== undefined, {
+  // Pesanan dine-in (yang dikirim ke dapur) wajib memilih meja. Draft held dikecualikan.
+  .refine((d) => d.hold || d.orderType !== 'dine_in' || d.mejaId !== undefined, {
     message: 'Pesanan dine-in harus memilih nomor meja terlebih dahulu',
     path: ['mejaId'],
   });
@@ -44,7 +47,7 @@ export const pesananIdParamSchema = z.object({
 export const listPesananQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  status: z.enum(['pending', 'completed', 'cancelled']).optional(),
+  status: z.enum(['held', 'pending', 'completed', 'cancelled']).optional(),
   mejaId: z.coerce.number().int().positive().optional(),
 });
 

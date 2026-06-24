@@ -365,7 +365,7 @@ export const schemas = {
       tanggal: { type: 'string', format: 'date', example: '2026-06-03' },
       status: {
         type: 'string',
-        enum: ['pending', 'completed', 'cancelled'],
+        enum: ['held', 'pending', 'completed', 'cancelled'],
         example: 'pending',
       },
       subtotal: { type: 'integer', example: 36000 },
@@ -435,6 +435,12 @@ export const schemas = {
       catatan: { type: 'string', example: 'meja pojok' },
       mejaId: { type: 'integer', example: 3 },
       memberId: { type: 'integer', example: 1 },
+      hold: {
+        type: 'boolean',
+        default: false,
+        description:
+          'true = simpan sebagai draft (status held): tanpa potong stok, tanpa masuk dapur.',
+      },
       diskon: {
         type: 'object',
         description: 'Diskon level pesanan',
