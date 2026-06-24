@@ -30,7 +30,8 @@ export const pesananPaths = {
       description:
         '**Admin & Kasir.** Membuat pesanan baru. Total dihitung dari harga menu, ' +
         'stok bahan baku dipotong otomatis berdasarkan resep menu, dan transaksi bahan ' +
-        'keluar (tipe `sale`) dicatat. Semuanya atomik dalam satu transaksi DB.',
+        'keluar (tipe `sale`) dicatat. Semuanya atomik dalam satu transaksi DB.\n\n' +
+        '⚠️ Pesanan **dine_in wajib menyertakan `mejaId`** (jika tidak → 422).',
       requestBody: {
         required: true,
         content: {
