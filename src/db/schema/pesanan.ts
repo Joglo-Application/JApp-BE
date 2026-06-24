@@ -6,8 +6,8 @@ import { meja } from './meja';
 import { member } from './member';
 
 export const pesananStatusEnum = pgEnum('pesanan_status', [
-  'held',
   'pending',
+  'in_progress',
   'completed',
   'cancelled',
 ]);
@@ -25,7 +25,7 @@ export const diskonTipeEnum = pgEnum('diskon_tipe', ['amount', 'percent']);
 export const pesanan = pgTable('pesanan', {
   pesananId: serial('pesanan_id').primaryKey(),
   tanggal: date('tanggal').notNull().default(sql`CURRENT_DATE`),
-  status: pesananStatusEnum('status').notNull().default('pending'),
+  status: pesananStatusEnum('status').notNull().default('in_progress'),
 
   // Rincian uang (dihitung server-side agar konsisten dengan frontend)
   subtotal: integer('subtotal').notNull().default(0),

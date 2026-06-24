@@ -6,7 +6,7 @@ export const kitchenPaths = {
       tags: ['Kitchen'],
       summary: 'List order aktif untuk dapur',
       description: [
-        'Order aktif = pesanan berstatus `pending` (belum dibayar), diurutkan FIFO.',
+        'Order aktif = pesanan berstatus `in_progress` (sedang diproses), diurutkan FIFO.',
         'Saat pesanan dibayar (status `completed`) otomatis hilang dari daftar ini.',
         'Bentuk cocok dengan `KitchenOrderModel.fromJson` di FE.',
       ].join('\n'),

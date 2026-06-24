@@ -10,7 +10,7 @@ export const listPesananHandler: Handler<AppBindings> = async (c) => {
   const result = await service.listPesanan({
     page: Number(q.page ?? 1),
     limit: Number(q.limit ?? 10),
-    status: q.status as 'held' | 'pending' | 'completed' | 'cancelled' | undefined,
+    status: q.status as 'pending' | 'in_progress' | 'completed' | 'cancelled' | undefined,
     mejaId: q.mejaId ? Number(q.mejaId) : undefined,
   });
   return c.json(paginated(result.data, result.pagination));

@@ -146,7 +146,7 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       .insert(pesanan)
       .values({
         userId,
-        status: isHold ? 'held' : 'pending',
+        status: isHold ? 'pending' : 'in_progress',
         subtotal,
         serviceCharge,
         pajak,
@@ -251,7 +251,7 @@ export async function cancelPesanan(userId: number, id: number) {
   return db.transaction(async (tx) => {
     const [row] = await tx.select().from(pesanan).where(eq(pesanan.pesananId, id)).limit(1);
     if (!row) throw new NotFoundError('Pesanan tidak ditemukan');
-    if (row.status !== 'pending') {
+    if (row.status !== 'in_progress') {
       throw new ConflictError(`Pesanan dengan status "${row.status}" tidak dapat dibatalkan`);
     }
 
@@ -293,16 +293,16 @@ export async function cancelPesanan(userId: number, id: number) {
 }
 
 /**
- * Menghapus draft "held" (dipakai saat draft di-Pilih/Gabung kembali ke POS,
- * agar tidak dobel). Hanya pesanan berstatus `held` yang boleh dihapus —
- * pesanan nyata (pending/completed/cancelled) tidak.
+ * Menghapus draft (dipakai saat draft di-Pilih/Gabung kembali ke POS, agar
+ * tidak dobel). Hanya pesanan berstatus `pending` (draft) yang boleh dihapus —
+ * pesanan nyata (in_progress/completed/cancelled) tidak.
  */
 export async function deletePesanan(id: number) {
   const [row] = await db.select().from(pesanan).where(eq(pesanan.pesananId, id)).limit(1);
   if (!row) throw new NotFoundError('Pesanan tidak ditemukan');
-  if (row.status !== 'held') {
-    throw new BadRequestError('Hanya pesanan draft (held) yang dapat dihapus');
+  if (row.status !== 'pending') {
+    throw new BadRequestError('Hanya pesanan draft (pending) yang dapat dihapus');
   }
-  // detail_pesanan ON DELETE CASCADE; held tidak punya pembayaran/stok keluar.
+  // detail_pesanan ON DELETE CASCADE; draft tidak punya pembayaran/stok keluar.
   await db.delete(pesanan).where(eq(pesanan.pesananId, id));
 }
