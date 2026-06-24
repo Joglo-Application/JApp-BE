@@ -11,6 +11,7 @@ export const listPesananHandler: Handler<AppBindings> = async (c) => {
     page: Number(q.page ?? 1),
     limit: Number(q.limit ?? 10),
     status: q.status as 'pending' | 'completed' | 'cancelled' | undefined,
+    mejaId: q.mejaId ? Number(q.mejaId) : undefined,
   });
   return c.json(paginated(result.data, result.pagination));
 };

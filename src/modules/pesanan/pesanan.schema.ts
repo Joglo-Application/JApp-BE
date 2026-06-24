@@ -45,6 +45,7 @@ export const listPesananQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
   status: z.enum(['pending', 'completed', 'cancelled']).optional(),
+  mejaId: z.coerce.number().int().positive().optional(),
 });
 
 export type PesananItemInput = z.infer<typeof pesananItemSchema>;
