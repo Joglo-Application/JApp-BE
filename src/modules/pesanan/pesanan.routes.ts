@@ -10,6 +10,7 @@ import {
 import {
   cancelPesananHandler,
   createPesananHandler,
+  deletePesananHandler,
   getPesananHandler,
   listPesananHandler,
 } from './pesanan.handler';
@@ -35,4 +36,11 @@ pesananRoutes.post(
   requireRole('admin', 'kasir'),
   validate('param', pesananIdParamSchema),
   cancelPesananHandler,
+);
+// Hapus draft held (saat di-Pilih/Gabung kembali ke POS).
+pesananRoutes.delete(
+  '/:id',
+  requireRole('admin', 'kasir'),
+  validate('param', pesananIdParamSchema),
+  deletePesananHandler,
 );

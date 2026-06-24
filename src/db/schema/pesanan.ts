@@ -6,6 +6,7 @@ import { meja } from './meja';
 import { member } from './member';
 
 export const pesananStatusEnum = pgEnum('pesanan_status', [
+  'held',
   'pending',
   'completed',
   'cancelled',

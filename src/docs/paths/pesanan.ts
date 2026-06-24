@@ -11,7 +11,7 @@ export const pesananPaths = {
         {
           name: 'status',
           in: 'query',
-          schema: { type: 'string', enum: ['pending', 'completed', 'cancelled'] },
+          schema: { type: 'string', enum: ['held', 'pending', 'completed', 'cancelled'] },
         },
         {
           name: 'mejaId',
@@ -37,7 +37,10 @@ export const pesananPaths = {
         '**Admin & Kasir.** Membuat pesanan baru. Total dihitung dari harga menu, ' +
         'stok bahan baku dipotong otomatis berdasarkan resep menu, dan transaksi bahan ' +
         'keluar (tipe `sale`) dicatat. Semuanya atomik dalam satu transaksi DB.\n\n' +
-        '⚠️ Pesanan **dine_in wajib menyertakan `mejaId`** (jika tidak → 422).',
+        '⚠️ Pesanan **dine_in wajib menyertakan `mejaId`** (jika tidak → 422).\n\n' +
+        '💡 Kirim `hold: true` untuk menyimpan sebagai **draft (status `held`)**: ' +
+        'tidak memotong stok, tidak masuk dapur, validasi metode/meja di-relax. ' +
+        'Dipakai fitur "Pending" (parkir cart).',
       requestBody: {
         required: true,
         content: {
@@ -94,6 +97,32 @@ export const pesananPaths = {
           },
         },
         '401': commonResponses.Unauthorized,
+        '404': commonResponses.NotFound,
+      },
+    },
+    delete: {
+      tags: ['Pesanan'],
+      summary: 'Hapus draft held',
+      description:
+        '**Admin & Kasir.** Menghapus pesanan **draft (`held`)** — dipakai saat draft ' +
+        'di-Pilih/Gabung kembali ke POS. Hanya status `held` yang boleh dihapus ' +
+        '(pending/completed/cancelled → 400).',
+      parameters: [idPathParam],
+      responses: {
+        '200': {
+          description: 'Draft dihapus',
+          content: {
+            'application/json': { example: { success: true, data: { deleted: true } } },
+          },
+        },
+        '400': {
+          description: 'Pesanan bukan draft held',
+          content: {
+            'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } },
+          },
+        },
+        '401': commonResponses.Unauthorized,
+        '403': commonResponses.Forbidden,
         '404': commonResponses.NotFound,
       },
     },
