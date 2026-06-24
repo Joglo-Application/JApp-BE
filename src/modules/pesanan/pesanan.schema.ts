@@ -19,17 +19,23 @@ export const orderDiscountSchema = z.object({
   promoNama: z.string().trim().max(100).optional(),
 });
 
-export const createPesananSchema = z.object({
-  items: z.array(pesananItemSchema).min(1, 'Pesanan harus memiliki minimal satu item'),
-  customerNama: z.string().trim().max(100).optional(),
-  orderType: z
-    .enum(['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood'])
-    .optional(),
-  catatan: z.string().trim().max(500).optional(),
-  mejaId: z.number().int().positive().optional(),
-  memberId: z.number().int().positive().optional(),
-  diskon: orderDiscountSchema.optional(),
-});
+export const createPesananSchema = z
+  .object({
+    items: z.array(pesananItemSchema).min(1, 'Pesanan harus memiliki minimal satu item'),
+    customerNama: z.string().trim().max(100).optional(),
+    orderType: z
+      .enum(['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood'])
+      .optional(),
+    catatan: z.string().trim().max(500).optional(),
+    mejaId: z.number().int().positive().optional(),
+    memberId: z.number().int().positive().optional(),
+    diskon: orderDiscountSchema.optional(),
+  })
+  // Pesanan dine-in wajib memilih meja.
+  .refine((d) => d.orderType !== 'dine_in' || d.mejaId !== undefined, {
+    message: 'Pesanan dine-in harus memilih nomor meja terlebih dahulu',
+    path: ['mejaId'],
+  });
 
 export const pesananIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
