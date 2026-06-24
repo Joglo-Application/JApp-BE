@@ -13,6 +13,12 @@ export const pesananPaths = {
           in: 'query',
           schema: { type: 'string', enum: ['pending', 'completed', 'cancelled'] },
         },
+        {
+          name: 'mejaId',
+          in: 'query',
+          description: 'Filter pesanan milik suatu meja (mis. untuk "Lihat Pesanan").',
+          schema: { type: 'integer' },
+        },
       ],
       responses: {
         '200': {

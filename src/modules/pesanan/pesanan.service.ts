@@ -1,4 +1,4 @@
-import { count, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { env } from '@/config/env';
 import { pesanan } from '@/db/schema/pesanan';
@@ -186,7 +186,10 @@ export async function listPesanan(query: ListPesananQuery) {
     page: query.page,
     limit: query.limit,
   });
-  const whereClause = query.status ? eq(pesanan.status, query.status) : undefined;
+  const conditions = [];
+  if (query.status) conditions.push(eq(pesanan.status, query.status));
+  if (query.mejaId !== undefined) conditions.push(eq(pesanan.mejaId, query.mejaId));
+  const whereClause = conditions.length ? and(...conditions) : undefined;
 
   const [data, totalRows] = await Promise.all([
     db
