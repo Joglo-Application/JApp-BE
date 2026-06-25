@@ -3,6 +3,7 @@ import { db } from '@/config/database';
 import { pesanan } from '@/db/schema/pesanan';
 import { detailPesanan } from '@/db/schema/detail-pesanan';
 import { menus } from '@/db/schema/menus';
+import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors';
 
 /** Label tipe order sesuai yang ditampilkan layar dapur (FE). */
 function tipeLabel(orderType: string | null): string {
@@ -66,4 +67,34 @@ export async function listActiveOrders() {
     startTime: r.createdAt.toISOString(),
     items: itemsByPesanan.get(r.pesananId) ?? [],
   }));
+}
+
+/**
+ * Dapur menyelesaikan sebuah pesanan (makanan sudah selesai dibuat & diserahkan)
+ * → status `completed`, hilang dari layar dapur.
+ *
+ * Hanya untuk order NON Dine-In: Dine-In diselesaikan lewat pembayaran (agar
+ * meja otomatis bebas), bukan dari sisi dapur.
+ */
+export async function completeOrder(id: number) {
+  const [row] = await db
+    .select({ status: pesanan.status, orderType: pesanan.orderType })
+    .from(pesanan)
+    .where(eq(pesanan.pesananId, id))
+    .limit(1);
+  if (!row) throw new NotFoundError('Pesanan tidak ditemukan');
+  if (row.orderType === 'dine_in') {
+    throw new BadRequestError(
+      'Pesanan Dine-In diselesaikan lewat pembayaran, bukan dari dapur',
+    );
+  }
+  if (row.status !== 'in_progress') {
+    throw new ConflictError(
+      `Pesanan dengan status "${row.status}" tidak dapat diselesaikan`,
+    );
+  }
+  await db
+    .update(pesanan)
+    .set({ status: 'completed' })
+    .where(eq(pesanan.pesananId, id));
 }
