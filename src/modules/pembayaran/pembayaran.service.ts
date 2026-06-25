@@ -8,10 +8,11 @@ import type { CreatePembayaranInput, ListPembayaranQuery } from './pembayaran.sc
 
 /**
  * Memproses pembayaran sebuah pesanan:
- * - validasi pesanan masih `pending` dan belum dibayar,
+ * - validasi pesanan belum dibatalkan & belum dibayar,
  * - validasi jumlah bayar mencukupi total,
  * - menghitung kembalian,
- * - menandai pesanan `completed`.
+ * - Dine-In → tandai `completed` (meja bebas); non Dine-In tetap `in_progress`
+ *   agar muncul di dapur (diselesaikan via `PATCH /kitchen/orders/{id}/done`).
  * Atomik dalam satu transaksi DB.
  */
 export async function createPembayaran(input: CreatePembayaranInput) {
@@ -56,10 +57,17 @@ export async function createPembayaran(input: CreatePembayaranInput) {
       })
       .returning();
 
-    await tx
-      .update(pesanan)
-      .set({ status: 'completed' })
-      .where(eq(pesanan.pesananId, input.pesananId));
+    // Dine-In: pembayaran = akhir transaksi (makanan sudah disajikan selama
+    // pelanggan makan) → tandai `completed`, meja otomatis bebas.
+    // Non-Dine-In (take-away/online): bayar di depan, makanan belum dibuat —
+    // biarkan tetap `in_progress` agar muncul di layar dapur; dapur yang
+    // menyelesaikannya lewat tombol "Selesai".
+    if (order.orderType === 'dine_in') {
+      await tx
+        .update(pesanan)
+        .set({ status: 'completed' })
+        .where(eq(pesanan.pesananId, input.pesananId));
+    }
 
     return created.pembayaranId;
   });
