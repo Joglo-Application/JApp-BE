@@ -7,25 +7,52 @@ const decimalString = z
     message: 'Harus angka positif (maksimal 3 desimal)',
   });
 
-export const createMenuSchema = z.object({
-  namaMenu: z.string().trim().min(1).max(100),
-  kategori: z.string().trim().min(1).max(50),
-  harga: z.number().int().min(0),
-  isActive: z.boolean().default(true),
-  // Stok produk untuk tampilan inventori POS.
-  stok: z.number().int().min(0).default(0),
-  stokMinimum: z.number().int().min(0).default(0),
-  imageUrl: z.string().trim().max(255).optional(),
-  // Resep makanan opsional — dibuat sekaligus dalam satu transaksi.
-  resep: z
-    .array(
-      z.object({
-        bahanId: z.number().int().positive(),
-        jumlahPakai: decimalString,
-      }),
-    )
-    .optional(),
-});
+const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD');
+
+export const createMenuSchema = z
+  .object({
+    namaMenu: z.string().trim().min(1).max(100),
+    kategori: z.string().trim().min(1).max(50),
+    harga: z.number().int().min(0),
+    isActive: z.boolean().default(true),
+    // Stok produk untuk tampilan inventori POS.
+    stok: z.number().int().min(0).default(0),
+    stokMinimum: z.number().int().min(0).default(0),
+    imageUrl: z.string().trim().max(255).optional(),
+    // Royalty point opsional.
+    royaltyPoint: z.number().int().min(0).optional(),
+    // Produk khusus: bila true, wajib sertakan rentang tanggal.
+    isProdukKhusus: z.boolean().default(false),
+    produkKhususMulai: dateString.optional(),
+    produkKhususSelesai: dateString.optional(),
+    catatan: z.string().trim().max(500).optional(),
+    // Resep makanan opsional — dibuat sekaligus dalam satu transaksi.
+    resep: z
+      .array(
+        z.object({
+          bahanId: z.number().int().positive(),
+          jumlahPakai: decimalString,
+        }),
+      )
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.isProdukKhusus) {
+      if (!data.produkKhususMulai || !data.produkKhususSelesai) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Produk khusus wajib menyertakan produkKhususMulai dan produkKhususSelesai',
+          path: ['produkKhususMulai'],
+        });
+      } else if (data.produkKhususMulai > data.produkKhususSelesai) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'produkKhususMulai tidak boleh setelah produkKhususSelesai',
+          path: ['produkKhususSelesai'],
+        });
+      }
+    }
+  });
 
 export const updateMenuSchema = z
   .object({
@@ -36,6 +63,11 @@ export const updateMenuSchema = z
     stok: z.number().int().min(0).optional(),
     stokMinimum: z.number().int().min(0).optional(),
     imageUrl: z.string().trim().max(255).nullable().optional(),
+    royaltyPoint: z.number().int().min(0).nullable().optional(),
+    isProdukKhusus: z.boolean().optional(),
+    produkKhususMulai: dateString.nullable().optional(),
+    produkKhususSelesai: dateString.nullable().optional(),
+    catatan: z.string().trim().max(500).nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Minimal satu field harus diisi',

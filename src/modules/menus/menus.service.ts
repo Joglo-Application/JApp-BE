@@ -65,7 +65,9 @@ export async function createMenu(input: CreateMenuInput) {
         uniqueResep.map((r) => ({
           menuId: created.menuId,
           bahanId: r.bahanId,
-          jumlahPakai: r.jumlahPakai,
+          // Coerce to string — the handler reads raw JSON (no zod transform),
+          // and the numeric column expects a string.
+          jumlahPakai: String(r.jumlahPakai),
         })),
       );
     }

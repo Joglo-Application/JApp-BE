@@ -45,3 +45,6 @@ src/db/migrations/meta/_journal.json.bak
 # Temporary
 tmp/
 temp/
+
+# Dokumentasi lokal (jangan di-push)
+erd-v1.md
