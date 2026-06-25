@@ -23,6 +23,8 @@ export async function listStokGudang() {
 
   return rows.map((r) => ({
     id: `STK-${String(r.bahanId).padStart(3, '0')}`,
+    // Raw FK so the frontend can reference it in resep (POST /menus).
+    bahanId: r.bahanId,
     nama: r.nama,
     // Frontend membaca `kategori` sebagai String non-null.
     kategori: r.kategori ?? '',
