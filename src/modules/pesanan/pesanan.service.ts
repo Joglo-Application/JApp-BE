@@ -46,6 +46,21 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
     if (input.mejaId !== undefined) {
       const [m] = await tx.select({ id: meja.mejaId }).from(meja).where(eq(meja.mejaId, input.mejaId)).limit(1);
       if (!m) throw new NotFoundError('Meja tidak ditemukan');
+
+      // Satu meja hanya boleh punya SATU transaksi aktif (in_progress).
+      // Draft held dikecualikan (belum benar-benar menempati meja).
+      if (!isHold) {
+        const [busy] = await tx
+          .select({ id: pesanan.pesananId })
+          .from(pesanan)
+          .where(and(eq(pesanan.mejaId, input.mejaId), eq(pesanan.status, 'in_progress')))
+          .limit(1);
+        if (busy) {
+          throw new ConflictError(
+            `Meja sedang dipakai (pesanan #${busy.id}). Selesaikan dulu pesanan tersebut.`,
+          );
+        }
+      }
     }
     if (input.memberId !== undefined) {
       const [m] = await tx.select({ id: member.memberId }).from(member).where(eq(member.memberId, input.memberId)).limit(1);
