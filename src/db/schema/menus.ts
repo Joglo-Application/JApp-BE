@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, integer, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, integer, boolean, date, text } from 'drizzle-orm/pg-core';
 import { timestamps } from './_helpers';
 
 export const menus = pgTable('menus', {
@@ -11,6 +11,13 @@ export const menus = pgTable('menus', {
   stok: integer('stok').notNull().default(0),
   stokMinimum: integer('stok_minimum').notNull().default(0),
   imageUrl: varchar('image_url', { length: 255 }),
+  // Royalty point opsional (poin yang didapat per pembelian menu ini).
+  royaltyPoint: integer('royalty_point'),
+  // Produk khusus: aktif untuk rentang tanggal tertentu.
+  isProdukKhusus: boolean('is_produk_khusus').notNull().default(false),
+  produkKhususMulai: date('produk_khusus_mulai'),
+  produkKhususSelesai: date('produk_khusus_selesai'),
+  catatan: text('catatan'),
   ...timestamps,
 });
 
