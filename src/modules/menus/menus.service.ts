@@ -53,19 +53,32 @@ export async function getMenuById(id: number) {
 }
 
 export async function createMenu(input: CreateMenuInput) {
-  const [created] = await db.insert(menus).values(input).returning();
-  return created;
+  const { resep, ...menuData } = input;
+
+  return db.transaction(async (tx) => {
+    const [created] = await tx.insert(menus).values(menuData).returning();
+
+    if (resep && resep.length > 0) {
+      // Dedupe by bahanId (resep_menu has a unique (menu_id, bahan_id) index).
+      const uniqueResep = Array.from(new Map(resep.map((r) => [r.bahanId, r])).values());
+      await tx.insert(resepMenu).values(
+        uniqueResep.map((r) => ({
+          menuId: created.menuId,
+          bahanId: r.bahanId,
+          jumlahPakai: r.jumlahPakai,
+        })),
+      );
+    }
+
+    return created;
+  });
 }
 
 export async function updateMenu(id: number, input: UpdateMenuInput) {
   const [menu] = await db.select().from(menus).where(eq(menus.menuId, id)).limit(1);
   if (!menu) throw new NotFoundError('Menu tidak ditemukan');
 
-  const [updated] = await db
-    .update(menus)
-    .set(input)
-    .where(eq(menus.menuId, id))
-    .returning();
+  const [updated] = await db.update(menus).set(input).where(eq(menus.menuId, id)).returning();
   return updated;
 }
 
@@ -122,11 +135,7 @@ export async function addResep(menuId: number, input: CreateResepInput) {
   return created;
 }
 
-export async function updateResep(
-  menuId: number,
-  resepId: number,
-  input: UpdateResepInput,
-) {
+export async function updateResep(menuId: number, resepId: number, input: UpdateResepInput) {
   const [existing] = await db
     .select()
     .from(resepMenu)

@@ -169,7 +169,13 @@ export const schemas = {
     required: ['namaUser', 'username', 'password'],
     properties: {
       namaUser: { type: 'string', maxLength: 100, example: 'Kasir Baru' },
-      username: { type: 'string', minLength: 3, maxLength: 50, pattern: '^[a-zA-Z0-9_]+$', example: 'kasir2' },
+      username: {
+        type: 'string',
+        minLength: 3,
+        maxLength: 50,
+        pattern: '^[a-zA-Z0-9_]+$',
+        example: 'kasir2',
+      },
       password: { type: 'string', minLength: 6, maxLength: 100, example: 'kasir123' },
       role: { type: 'string', enum: ['admin', 'kasir', 'owner'], default: 'kasir' },
     },
@@ -240,7 +246,13 @@ export const schemas = {
       namaSupplier: { type: 'string', maxLength: 100, example: 'PT Sumber Baru' },
       noTelp: { type: 'string', maxLength: 20, nullable: true, example: '08123456789' },
       alamat: { type: 'string', nullable: true, example: 'Jl. Sudirman No. 1' },
-      email: { type: 'string', format: 'email', maxLength: 100, nullable: true, example: 'sumber@example.com' },
+      email: {
+        type: 'string',
+        format: 'email',
+        maxLength: 100,
+        nullable: true,
+        example: 'sumber@example.com',
+      },
     },
   },
   UpdateSupplierInput: {
@@ -287,6 +299,24 @@ export const schemas = {
       kategori: { type: 'string', maxLength: 50, example: 'minuman' },
       harga: { type: 'integer', minimum: 0, example: 16000 },
       isActive: { type: 'boolean', default: true },
+      stok: { type: 'integer', minimum: 0, default: 0, description: 'Stok awal (lacak inventori)' },
+      stokMinimum: { type: 'integer', minimum: 0, default: 0, description: 'Peringatan sisa stok' },
+      resep: {
+        type: 'array',
+        description: 'Resep makanan opsional — dibuat sekaligus dengan menu.',
+        items: {
+          type: 'object',
+          required: ['bahanId', 'jumlahPakai'],
+          properties: {
+            bahanId: { type: 'integer', example: 1 },
+            jumlahPakai: {
+              type: 'string',
+              example: '10',
+              description: 'Decimal string (max 3 desimal)',
+            },
+          },
+        },
+      },
     },
   },
   UpdateMenuInput: {
@@ -315,7 +345,11 @@ export const schemas = {
     required: ['bahanId', 'jumlahPakai'],
     properties: {
       bahanId: { type: 'integer', example: 4 },
-      jumlahPakai: { type: 'string', example: '50', description: 'Decimal positive (max 3 desimal)' },
+      jumlahPakai: {
+        type: 'string',
+        example: '50',
+        description: 'Decimal positive (max 3 desimal)',
+      },
     },
   },
   UpdateResepInput: {
@@ -374,7 +408,11 @@ export const schemas = {
       diskon: { type: 'integer', example: 0 },
       diskonTipe: { type: 'string', nullable: true, enum: ['amount', 'percent', null] },
       promoNama: { type: 'string', nullable: true, example: null },
-      total: { type: 'integer', example: 39600, description: 'subtotal + layanan + pajak − diskon' },
+      total: {
+        type: 'integer',
+        example: 39600,
+        description: 'subtotal + layanan + pajak − diskon',
+      },
       orderType: {
         type: 'string',
         nullable: true,
@@ -418,10 +456,19 @@ export const schemas = {
           required: ['jumlah'],
           properties: {
             menuId: { type: 'integer', example: 1, description: 'Wajib untuk item menu' },
-            namaCustom: { type: 'string', example: 'Es Teh Spesial', description: 'Untuk item custom' },
+            namaCustom: {
+              type: 'string',
+              example: 'Es Teh Spesial',
+              description: 'Untuk item custom',
+            },
             hargaSatuan: { type: 'integer', example: 8000, description: 'Wajib untuk item custom' },
             jumlah: { type: 'integer', minimum: 1, example: 2 },
-            diskon: { type: 'integer', minimum: 0, example: 0, description: 'Diskon nominal per baris' },
+            diskon: {
+              type: 'integer',
+              minimum: 0,
+              example: 0,
+              description: 'Diskon nominal per baris',
+            },
             catatan: { type: 'string', example: 'tanpa gula' },
           },
         },
@@ -522,7 +569,12 @@ export const schemas = {
     type: 'object',
     required: ['hargaSatuan'],
     properties: {
-      hargaSatuan: { type: 'integer', minimum: 0, example: 150, description: 'Harga beli per satuan' },
+      hargaSatuan: {
+        type: 'integer',
+        minimum: 0,
+        example: 150,
+        description: 'Harga beli per satuan',
+      },
       jumlah: {
         type: 'string',
         example: '50',
@@ -620,14 +672,22 @@ export const schemas = {
       nomor: { type: 'string', maxLength: 30, example: 'A1' },
       zona: { type: 'string', maxLength: 50, example: 'Indoor' },
       kapasitas: { type: 'integer', minimum: 1, default: 4, example: 4 },
-      status: { type: 'string', enum: ['available', 'occupied', 'reserved', 'blocked'], default: 'available' },
+      status: {
+        type: 'string',
+        enum: ['available', 'occupied', 'reserved', 'blocked'],
+        default: 'available',
+      },
     },
   },
   UpdateMejaStatusInput: {
     type: 'object',
     required: ['status'],
     properties: {
-      status: { type: 'string', enum: ['available', 'occupied', 'reserved', 'blocked'], example: 'occupied' },
+      status: {
+        type: 'string',
+        enum: ['available', 'occupied', 'reserved', 'blocked'],
+        example: 'occupied',
+      },
     },
   },
 

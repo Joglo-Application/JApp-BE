@@ -16,6 +16,15 @@ export const createMenuSchema = z.object({
   stok: z.number().int().min(0).default(0),
   stokMinimum: z.number().int().min(0).default(0),
   imageUrl: z.string().trim().max(255).optional(),
+  // Resep makanan opsional — dibuat sekaligus dalam satu transaksi.
+  resep: z
+    .array(
+      z.object({
+        bahanId: z.number().int().positive(),
+        jumlahPakai: decimalString,
+      }),
+    )
+    .optional(),
 });
 
 export const updateMenuSchema = z
