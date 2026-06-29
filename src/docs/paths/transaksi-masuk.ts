@@ -24,7 +24,7 @@ export const transaksiMasukPaths = {
       tags: ['Transaksi Masuk'],
       summary: 'Create transaksi bahan masuk (tanpa PO)',
       description:
-        '**Admin only.** Penerimaan bahan langsung tanpa PO: mencatat transaksi, ' +
+        'Role: **admin, gudang**. Penerimaan bahan langsung tanpa PO: mencatat transaksi, ' +
         '**menambah stok**, dan memperbarui harga satuan bahan. Atomik.',
       requestBody: {
         required: true,

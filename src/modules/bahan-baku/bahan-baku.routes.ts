@@ -26,15 +26,21 @@ bahanBakuRoutes.use('*', authMiddleware);
 bahanBakuRoutes.get('/', validate('query', paginationQuerySchema), listHandler);
 bahanBakuRoutes.get('/:id', validate('param', bahanIdParamSchema), getHandler);
 
-// Write: admin only
-bahanBakuRoutes.post('/', requireRole('admin'), validate('json', createBahanBakuSchema), createHandler);
+// Write (tambah/edit stok): admin + gudang (pengelola Stok Gudang / "supplier" di FE)
+bahanBakuRoutes.post(
+  '/',
+  requireRole('admin', 'gudang'),
+  validate('json', createBahanBakuSchema),
+  createHandler,
+);
 bahanBakuRoutes.patch(
   '/:id',
-  requireRole('admin'),
+  requireRole('admin', 'gudang'),
   validate('param', bahanIdParamSchema),
   validate('json', updateBahanBakuSchema),
   updateHandler,
 );
+// Hapus bahan: admin only (lebih sensitif)
 bahanBakuRoutes.delete(
   '/:id',
   requireRole('admin'),

@@ -22,7 +22,7 @@ export const bahanBakuPaths = {
     post: {
       tags: ['Bahan Baku'],
       summary: 'Create bahan baku',
-      description: 'Tambah bahan baku baru. **Admin only.**',
+      description: 'Tambah bahan baku baru. Role: **admin, gudang**.',
       requestBody: {
         required: true,
         content: {
@@ -77,7 +77,7 @@ export const bahanBakuPaths = {
     patch: {
       tags: ['Bahan Baku'],
       summary: 'Update bahan baku',
-      description: '**Admin only.**',
+      description: 'Role: **admin, gudang**.',
       parameters: [idPathParam],
       requestBody: {
         required: true,

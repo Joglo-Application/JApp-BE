@@ -30,10 +30,10 @@ transaksiMasukRoutes.get(
   getTransaksiMasukHandler,
 );
 
-// Write: admin
+// Write (stok masuk): admin + gudang (pengelola Stok Gudang / "supplier" di FE)
 transaksiMasukRoutes.post(
   '/',
-  requireRole('admin'),
+  requireRole('admin', 'gudang'),
   validate('json', createTransaksiMasukSchema),
   createTransaksiMasukHandler,
 );
