@@ -123,4 +123,47 @@ export const bahanBakuPaths = {
       },
     },
   },
+  '/bahan-baku/{id}/tambah-stok': {
+    patch: {
+      tags: ['Bahan Baku'],
+      summary: 'Tambah stok bahan baku (atomik)',
+      description:
+        'Menambah stok: `stok = stok + jumlah`. Dipakai halaman "Tambah Stok Gudang" ' +
+        '(hanya produk + jumlah). Role: **admin, gudang**.',
+      parameters: [idPathParam],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['jumlah'],
+              properties: {
+                jumlah: { type: 'number', example: 50, description: 'Positif, maks 3 desimal' },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'Stok bertambah',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/SuccessResponse' },
+                  { type: 'object', properties: { data: { $ref: '#/components/schemas/BahanBaku' } } },
+                ],
+              },
+            },
+          },
+        },
+        '401': commonResponses.Unauthorized,
+        '403': commonResponses.Forbidden,
+        '404': commonResponses.NotFound,
+        '422': commonResponses.ValidationError,
+      },
+    },
+  },
 };

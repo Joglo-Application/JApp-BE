@@ -1,4 +1,4 @@
-import { count, desc, eq, ilike } from 'drizzle-orm';
+import { count, desc, eq, ilike, sql } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { bahanBaku } from '@/db/schema/bahan-baku';
 import { NotFoundError } from '@/shared/errors';
@@ -42,6 +42,21 @@ export async function updateBahanBaku(id: number, input: UpdateBahanBakuInput) {
   const [updated] = await db
     .update(bahanBaku)
     .set(input)
+    .where(eq(bahanBaku.bahanId, id))
+    .returning();
+  return updated;
+}
+
+/**
+ * Menambah stok bahan baku secara atomik (`stok = stok + jumlah`).
+ * Dipakai halaman "Tambah Stok Gudang" yang hanya mengisi produk + jumlah
+ * (tanpa supplier/harga). Untuk penerimaan barang lengkap pakai POST /transaksi-masuk.
+ */
+export async function tambahStokBahanBaku(id: number, jumlah: string) {
+  await getBahanBakuById(id);
+  const [updated] = await db
+    .update(bahanBaku)
+    .set({ stok: sql`${bahanBaku.stok} + ${jumlah}` })
     .where(eq(bahanBaku.bahanId, id))
     .returning();
   return updated;
