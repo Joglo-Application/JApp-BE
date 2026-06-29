@@ -6,6 +6,7 @@ import { paginationQuerySchema } from '@/shared/pagination';
 import {
   bahanIdParamSchema,
   createBahanBakuSchema,
+  tambahStokSchema,
   updateBahanBakuSchema,
 } from './bahan-baku.schema';
 import {
@@ -13,6 +14,7 @@ import {
   deleteHandler,
   getHandler,
   listHandler,
+  tambahStokHandler,
   updateHandler,
 } from './bahan-baku.handler';
 import type { AppBindings } from '@/types/hono';
@@ -40,6 +42,15 @@ bahanBakuRoutes.patch(
   validate('json', updateBahanBakuSchema),
   updateHandler,
 );
+// Tambah stok atomik (halaman "Tambah Stok Gudang"): admin + gudang
+bahanBakuRoutes.patch(
+  '/:id/tambah-stok',
+  requireRole('admin', 'gudang'),
+  validate('param', bahanIdParamSchema),
+  validate('json', tambahStokSchema),
+  tambahStokHandler,
+);
+
 // Hapus bahan: admin only (lebih sensitif)
 bahanBakuRoutes.delete(
   '/:id',

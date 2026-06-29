@@ -36,5 +36,16 @@ export const bahanIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+// Tambah stok (positif, maks 3 desimal). Tolak 0/negatif.
+export const tambahStokSchema = z.object({
+  jumlah: z
+    .union([z.string(), z.number()])
+    .transform((v) => String(v))
+    .refine((v) => /^\d+(\.\d{1,3})?$/.test(v) && Number(v) > 0, {
+      message: 'Jumlah harus angka positif dengan maksimal 3 desimal',
+    }),
+});
+
 export type CreateBahanBakuInput = z.infer<typeof createBahanBakuSchema>;
 export type UpdateBahanBakuInput = z.infer<typeof updateBahanBakuSchema>;
+export type TambahStokInput = z.infer<typeof tambahStokSchema>;

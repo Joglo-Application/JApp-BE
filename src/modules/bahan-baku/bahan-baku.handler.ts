@@ -1,7 +1,11 @@
 import type { Handler } from 'hono';
 import { paginated, success } from '@/shared/response';
 import * as service from './bahan-baku.service';
-import type { CreateBahanBakuInput, UpdateBahanBakuInput } from './bahan-baku.schema';
+import type {
+  CreateBahanBakuInput,
+  TambahStokInput,
+  UpdateBahanBakuInput,
+} from './bahan-baku.schema';
 import type { AppBindings } from '@/types/hono';
 
 export const listHandler: Handler<AppBindings> = async (c) => {
@@ -30,6 +34,13 @@ export const updateHandler: Handler<AppBindings> = async (c) => {
   const id = Number(c.req.param('id'));
   const input = (await c.req.json()) as UpdateBahanBakuInput;
   const data = await service.updateBahanBaku(id, input);
+  return c.json(success(data));
+};
+
+export const tambahStokHandler: Handler<AppBindings> = async (c) => {
+  const id = Number(c.req.param('id'));
+  const input = (await c.req.json()) as TambahStokInput;
+  const data = await service.tambahStokBahanBaku(id, String(input.jumlah));
   return c.json(success(data));
 };
 
