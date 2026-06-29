@@ -5,6 +5,7 @@ import { bahanBaku } from './schema/bahan-baku';
 import { suppliers } from './schema/suppliers';
 import { menus } from './schema/menus';
 import { resepMenu } from './schema/resep-menu';
+import { meja } from './schema/meja';
 
 export async function seed(): Promise<void> {
   console.warn('Seeding database...');
@@ -21,14 +22,43 @@ export async function seed(): Promise<void> {
     })
     .returning();
 
-  await db.insert(users).values({
-    namaUser: 'Kasir 1',
-    username: 'kasir1',
-    password: await bcrypt.hash('kasir123', 10),
-    role: 'kasir',
-  });
+  // Satu akun per role (password = <role>123) agar semua role bisa dites.
+  await db.insert(users).values([
+    {
+      namaUser: 'Kasir 1',
+      username: 'kasir1',
+      password: await bcrypt.hash('kasir123', 10),
+      role: 'kasir',
+    },
+    {
+      namaUser: 'Owner 1',
+      username: 'owner1',
+      password: await bcrypt.hash('owner123', 10),
+      role: 'owner',
+    },
+    {
+      namaUser: 'Dapur 1',
+      username: 'dapur1',
+      password: await bcrypt.hash('dapur123', 10),
+      role: 'dapur',
+    },
+    {
+      namaUser: 'Supervisor 1',
+      username: 'supervisor1',
+      password: await bcrypt.hash('supervisor123', 10),
+      role: 'supervisor',
+    },
+    {
+      namaUser: 'Gudang 1',
+      username: 'gudang1',
+      password: await bcrypt.hash('gudang123', 10),
+      role: 'gudang',
+    },
+  ]);
 
-  console.warn(`  Users seeded (admin/admin123, kasir1/kasir123)`);
+  console.warn(
+    '  Users seeded (admin, kasir1, owner1, dapur1, supervisor1, gudang1 — password: <role>123)',
+  );
 
   // 2. Suppliers
   const [supplier] = await db
@@ -109,6 +139,17 @@ export async function seed(): Promise<void> {
   ]);
 
   console.warn('  Resep menu seeded');
+
+  // 6. Meja (status default: available)
+  await db.insert(meja).values([
+    { nomor: 'A1', zona: 'Indoor', kapasitas: 4 },
+    { nomor: 'A2', zona: 'Indoor', kapasitas: 4 },
+    { nomor: 'A3', zona: 'Indoor', kapasitas: 4 },
+    { nomor: 'A4', zona: 'Indoor', kapasitas: 2 },
+    { nomor: 'B1', zona: 'Outdoor', kapasitas: 6 },
+    { nomor: 'B2', zona: 'Outdoor', kapasitas: 6 },
+  ]);
+  console.warn('  6 meja seeded');
 
   void admin;
   void supplier;
