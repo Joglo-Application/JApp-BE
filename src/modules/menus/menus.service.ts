@@ -77,11 +77,40 @@ export async function createMenu(input: CreateMenuInput) {
 }
 
 export async function updateMenu(id: number, input: UpdateMenuInput) {
-  const [menu] = await db.select().from(menus).where(eq(menus.menuId, id)).limit(1);
-  if (!menu) throw new NotFoundError('Menu tidak ditemukan');
+  // `resep` bukan kolom tabel menus — pisahkan agar tidak masuk ke .set().
+  const { resep, ...menuData } = input;
 
-  const [updated] = await db.update(menus).set(input).where(eq(menus.menuId, id)).returning();
-  return updated;
+  return db.transaction(async (tx) => {
+    const [menu] = await tx.select().from(menus).where(eq(menus.menuId, id)).limit(1);
+    if (!menu) throw new NotFoundError('Menu tidak ditemukan');
+
+    let updated = menu;
+    if (Object.keys(menuData).length > 0) {
+      [updated] = await tx
+        .update(menus)
+        .set(menuData)
+        .where(eq(menus.menuId, id))
+        .returning();
+    }
+
+    // Bila resep dikirim, ganti total (replace) isi resep_menu menu ini.
+    if (resep) {
+      await tx.delete(resepMenu).where(eq(resepMenu.menuId, id));
+      if (resep.length > 0) {
+        // Dedupe by bahanId (unique index menu_id + bahan_id).
+        const uniqueResep = Array.from(new Map(resep.map((r) => [r.bahanId, r])).values());
+        await tx.insert(resepMenu).values(
+          uniqueResep.map((r) => ({
+            menuId: id,
+            bahanId: r.bahanId,
+            jumlahPakai: String(r.jumlahPakai),
+          })),
+        );
+      }
+    }
+
+    return updated;
+  });
 }
 
 export async function deleteMenu(id: number) {

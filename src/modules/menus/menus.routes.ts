@@ -31,17 +31,17 @@ menusRoutes.use('*', authMiddleware);
 // Menu CRUD
 menusRoutes.get('/', validate('query', paginationQuerySchema), listMenusHandler);
 menusRoutes.get('/:id', validate('param', menuIdParamSchema), getMenuHandler);
-menusRoutes.post('/', requireRole('admin'), validate('json', createMenuSchema), createMenuHandler);
+menusRoutes.post('/', requireRole('admin', 'owner'), validate('json', createMenuSchema), createMenuHandler);
 menusRoutes.patch(
   '/:id',
-  requireRole('admin'),
+  requireRole('admin', 'owner'),
   validate('param', menuIdParamSchema),
   validate('json', updateMenuSchema),
   updateMenuHandler,
 );
 menusRoutes.delete(
   '/:id',
-  requireRole('admin'),
+  requireRole('admin', 'owner'),
   validate('param', menuIdParamSchema),
   deleteMenuHandler,
 );
@@ -50,21 +50,21 @@ menusRoutes.delete(
 menusRoutes.get('/:id/resep', validate('param', menuIdParamSchema), listResepHandler);
 menusRoutes.post(
   '/:id/resep',
-  requireRole('admin'),
+  requireRole('admin', 'owner'),
   validate('param', menuIdParamSchema),
   validate('json', createResepSchema),
   addResepHandler,
 );
 menusRoutes.patch(
   '/:id/resep/:resepId',
-  requireRole('admin'),
+  requireRole('admin', 'owner'),
   validate('param', resepIdParamSchema),
   validate('json', updateResepSchema),
   updateResepHandler,
 );
 menusRoutes.delete(
   '/:id/resep/:resepId',
-  requireRole('admin'),
+  requireRole('admin', 'owner'),
   validate('param', resepIdParamSchema),
   deleteResepHandler,
 );
