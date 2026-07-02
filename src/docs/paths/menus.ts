@@ -25,7 +25,7 @@ export const menusPaths = {
     post: {
       tags: ['Menus'],
       summary: 'Create menu',
-      description: '**Admin only.**',
+      description: 'Role: **admin, owner**.',
       requestBody: {
         required: true,
         content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateMenuInput' } } },
@@ -77,7 +77,7 @@ export const menusPaths = {
     patch: {
       tags: ['Menus'],
       summary: 'Update menu',
-      description: '**Admin only.**',
+      description: 'Role: **admin, owner**.',
       parameters: [idPathParam],
       requestBody: {
         required: true,
@@ -106,7 +106,7 @@ export const menusPaths = {
     delete: {
       tags: ['Menus'],
       summary: 'Delete menu',
-      description: '**Admin only.** Resep ikut terhapus (cascade). Gagal jika menu pernah dipesan.',
+      description: 'Role: **admin, owner**. Resep ikut terhapus (cascade). Gagal jika menu pernah dipesan.',
       parameters: [idPathParam],
       responses: {
         '200': {
@@ -150,7 +150,7 @@ export const menusPaths = {
     post: {
       tags: ['Resep Menu'],
       summary: 'Add resep ke menu',
-      description: '**Admin only.**',
+      description: 'Role: **admin, owner**.',
       parameters: [idPathParam],
       requestBody: {
         required: true,
@@ -183,7 +183,7 @@ export const menusPaths = {
     patch: {
       tags: ['Resep Menu'],
       summary: 'Update jumlah pakai resep',
-      description: '**Admin only.**',
+      description: 'Role: **admin, owner**.',
       parameters: [idPathParam, resepIdParam],
       requestBody: {
         required: true,
@@ -203,7 +203,7 @@ export const menusPaths = {
     delete: {
       tags: ['Resep Menu'],
       summary: 'Hapus resep dari menu',
-      description: '**Admin only.**',
+      description: 'Role: **admin, owner**.',
       parameters: [idPathParam, resepIdParam],
       responses: {
         '200': {

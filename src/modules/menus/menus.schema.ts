@@ -68,6 +68,15 @@ export const updateMenuSchema = z
     produkKhususMulai: dateString.nullable().optional(),
     produkKhususSelesai: dateString.nullable().optional(),
     catatan: z.string().trim().max(500).nullable().optional(),
+    // Bila dikirim, resep menu diganti total (replace). Array kosong = kosongkan.
+    resep: z
+      .array(
+        z.object({
+          bahanId: z.number().int().positive(),
+          jumlahPakai: decimalString,
+        }),
+      )
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Minimal satu field harus diisi',
