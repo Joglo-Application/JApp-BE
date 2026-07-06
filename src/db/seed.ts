@@ -6,6 +6,7 @@ import { suppliers } from './schema/suppliers';
 import { menus } from './schema/menus';
 import { resepMenu } from './schema/resep-menu';
 import { meja } from './schema/meja';
+import { wedanganMenuData } from './data/wedangan-menus';
 
 export async function seed(): Promise<void> {
   console.warn('Seeding database...');
@@ -107,6 +108,11 @@ export async function seed(): Promise<void> {
     .returning();
 
   console.warn(`  ${menuList.length} menus seeded`);
+
+  // 4b. Menu Wedangan Joglo (dari daftar menu fisik) — sumber: data/wedangan-menus.ts
+  const wedanganMenus = await db.insert(menus).values(wedanganMenuData).returning();
+
+  console.warn(`  ${wedanganMenus.length} menu Wedangan Joglo seeded`);
 
   // 5. Resep Menu (komposisi)
   const [kopiSusu, esKopiSusu, tehTarik, kopiHitam] = menuList;
