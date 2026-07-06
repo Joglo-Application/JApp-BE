@@ -21,6 +21,7 @@
     "db:create": "tsx scripts/create-db.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed-menus": "tsx scripts/seed-menus.ts",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "test:watch": "vitest"
