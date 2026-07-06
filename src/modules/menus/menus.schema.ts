@@ -9,10 +9,19 @@ const decimalString = z
 
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD');
 
+// Kategori disimpan case-insensitive: selalu di-normalisasi ke huruf kecil +
+// trim, jadi "Makanan"/"makanan"/"MAKANAN" dianggap satu nilai yang sama.
+const kategoriString = z
+  .string()
+  .trim()
+  .min(1)
+  .max(50)
+  .transform((v) => v.toLowerCase());
+
 export const createMenuSchema = z
   .object({
     namaMenu: z.string().trim().min(1).max(100),
-    kategori: z.string().trim().min(1).max(50),
+    kategori: kategoriString,
     harga: z.number().int().min(0),
     isActive: z.boolean().default(true),
     // Stok produk untuk tampilan inventori POS.
@@ -57,7 +66,7 @@ export const createMenuSchema = z
 export const updateMenuSchema = z
   .object({
     namaMenu: z.string().trim().min(1).max(100).optional(),
-    kategori: z.string().trim().min(1).max(50).optional(),
+    kategori: kategoriString.optional(),
     harga: z.number().int().min(0).optional(),
     isActive: z.boolean().optional(),
     stok: z.number().int().min(0).optional(),
