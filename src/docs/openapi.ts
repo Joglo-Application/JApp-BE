@@ -16,6 +16,7 @@ import { transaksiPaths } from './paths/transaksi';
 import { inventoriPaths } from './paths/inventori';
 import { stokGudangPaths } from './paths/stok-gudang';
 import { kitchenPaths } from './paths/kitchen';
+import { logTransaksiPaths } from './paths/log-transaksi';
 // import { env } from '@/config/env';
 
 export function getOpenApiSpec() {
@@ -85,6 +86,7 @@ export function getOpenApiSpec() {
       ...inventoriPaths,
       ...stokGudangPaths,
       ...kitchenPaths,
+      ...logTransaksiPaths,
     },
     components: {
       securitySchemes,
