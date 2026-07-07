@@ -2,7 +2,7 @@ import type { Handler } from 'hono';
 import { paginated, success } from '@/shared/response';
 import { UnauthorizedError } from '@/shared/errors';
 import * as service from './pesanan.service';
-import type { CreatePesananInput } from './pesanan.schema';
+import type { CreatePesananInput, PindahMejaInput } from './pesanan.schema';
 import type { AppBindings } from '@/types/hono';
 
 export const listPesananHandler: Handler<AppBindings> = async (c) => {
@@ -42,4 +42,11 @@ export const deletePesananHandler: Handler<AppBindings> = async (c) => {
   const id = Number(c.req.param('id'));
   await service.deletePesanan(id);
   return c.json(success({ deleted: true }));
+};
+
+export const pindahMejaHandler: Handler<AppBindings> = async (c) => {
+  const id = Number(c.req.param('id'));
+  const input = (await c.req.json()) as PindahMejaInput;
+  const data = await service.pindahMeja(id, input.mejaId);
+  return c.json(success(data));
 };

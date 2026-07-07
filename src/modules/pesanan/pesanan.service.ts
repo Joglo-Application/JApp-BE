@@ -12,11 +12,7 @@ import { meja } from '@/db/schema/meja';
 import { member } from '@/db/schema/member';
 import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors';
 import { getPaginationParams } from '@/shared/pagination';
-import type {
-  CreatePesananInput,
-  ListPesananQuery,
-  OrderDiscountInput,
-} from './pesanan.schema';
+import type { CreatePesananInput, ListPesananQuery, OrderDiscountInput } from './pesanan.schema';
 
 /** Pembulatan numeric ke skala 3 desimal sesuai kolom DB stok. */
 function toQty(value: number): string {
@@ -44,7 +40,11 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
 
     // 1. Validasi relasi opsional
     if (input.mejaId !== undefined) {
-      const [m] = await tx.select({ id: meja.mejaId }).from(meja).where(eq(meja.mejaId, input.mejaId)).limit(1);
+      const [m] = await tx
+        .select({ id: meja.mejaId })
+        .from(meja)
+        .where(eq(meja.mejaId, input.mejaId))
+        .limit(1);
       if (!m) throw new NotFoundError('Meja tidak ditemukan');
 
       // Satu meja hanya boleh punya SATU transaksi aktif (in_progress).
@@ -63,7 +63,11 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       }
     }
     if (input.memberId !== undefined) {
-      const [m] = await tx.select({ id: member.memberId }).from(member).where(eq(member.memberId, input.memberId)).limit(1);
+      const [m] = await tx
+        .select({ id: member.memberId })
+        .from(member)
+        .where(eq(member.memberId, input.memberId))
+        .limit(1);
       if (!m) throw new NotFoundError('Member tidak ditemukan');
     }
 
@@ -110,7 +114,10 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
     // 4. Cek & potong stok
     if (required.size > 0) {
       const bahanIds = [...required.keys()];
-      const bahanRows = await tx.select().from(bahanBaku).where(inArray(bahanBaku.bahanId, bahanIds));
+      const bahanRows = await tx
+        .select()
+        .from(bahanBaku)
+        .where(inArray(bahanBaku.bahanId, bahanIds));
       const bahanMap = new Map(bahanRows.map((b) => [b.bahanId, b]));
 
       for (const [bahanId, need] of required) {
@@ -249,11 +256,7 @@ export async function getPesananById(id: number) {
     .leftJoin(menus, eq(detailPesanan.menuId, menus.menuId))
     .where(eq(detailPesanan.pesananId, id));
 
-  const [bayar] = await db
-    .select()
-    .from(pembayaran)
-    .where(eq(pembayaran.pesananId, id))
-    .limit(1);
+  const [bayar] = await db.select().from(pembayaran).where(eq(pembayaran.pesananId, id)).limit(1);
 
   return { ...row, items, pembayaran: bayar ?? null };
 }
@@ -320,4 +323,54 @@ export async function deletePesanan(id: number) {
   }
   // detail_pesanan ON DELETE CASCADE; draft tidak punya pembayaran/stok keluar.
   await db.delete(pesanan).where(eq(pesanan.pesananId, id));
+}
+
+/**
+ * Pindah meja: memindahkan pesanan aktif ke meja lain. Meng-update `mejaId`
+ * pesanan, menandai meja tujuan `occupied` dan meja asal `available` — atomik.
+ */
+export async function pindahMeja(pesananId: number, newMejaId: number) {
+  return db.transaction(async (tx) => {
+    const [p] = await tx.select().from(pesanan).where(eq(pesanan.pesananId, pesananId)).limit(1);
+    if (!p) throw new NotFoundError('Pesanan tidak ditemukan');
+    if (p.status !== 'in_progress') {
+      throw new BadRequestError('Hanya pesanan aktif yang dapat dipindah meja');
+    }
+
+    const [m] = await tx
+      .select({ id: meja.mejaId })
+      .from(meja)
+      .where(eq(meja.mejaId, newMejaId))
+      .limit(1);
+    if (!m) throw new NotFoundError('Meja tujuan tidak ditemukan');
+
+    const oldMejaId = p.mejaId;
+    if (oldMejaId === newMejaId) return p;
+
+    // Meja tujuan tidak boleh sudah dipakai pesanan aktif lain.
+    const [busy] = await tx
+      .select({ id: pesanan.pesananId })
+      .from(pesanan)
+      .where(and(eq(pesanan.mejaId, newMejaId), eq(pesanan.status, 'in_progress')))
+      .limit(1);
+    if (busy) {
+      throw new ConflictError(
+        `Meja tujuan sedang dipakai (pesanan #${busy.id}). Selesaikan dulu pesanan tersebut.`,
+      );
+    }
+
+    const [updated] = await tx
+      .update(pesanan)
+      .set({ mejaId: newMejaId })
+      .where(eq(pesanan.pesananId, pesananId))
+      .returning();
+
+    // Sinkronkan status meja: tujuan terisi, asal kosong.
+    await tx.update(meja).set({ status: 'occupied' }).where(eq(meja.mejaId, newMejaId));
+    if (oldMejaId !== null) {
+      await tx.update(meja).set({ status: 'available' }).where(eq(meja.mejaId, oldMejaId));
+    }
+
+    return updated;
+  });
 }

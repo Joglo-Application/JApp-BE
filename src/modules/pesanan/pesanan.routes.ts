@@ -6,6 +6,7 @@ import {
   createPesananSchema,
   listPesananQuerySchema,
   pesananIdParamSchema,
+  pindahMejaSchema,
 } from './pesanan.schema';
 import {
   cancelPesananHandler,
@@ -13,6 +14,7 @@ import {
   deletePesananHandler,
   getPesananHandler,
   listPesananHandler,
+  pindahMejaHandler,
 } from './pesanan.handler';
 import type { AppBindings } from '@/types/hono';
 
@@ -36,6 +38,14 @@ pesananRoutes.post(
   requireRole('admin', 'kasir'),
   validate('param', pesananIdParamSchema),
   cancelPesananHandler,
+);
+// Pindah meja: pindahkan pesanan aktif ke meja lain.
+pesananRoutes.patch(
+  '/:id/meja',
+  requireRole('admin', 'kasir'),
+  validate('param', pesananIdParamSchema),
+  validate('json', pindahMejaSchema),
+  pindahMejaHandler,
 );
 // Hapus draft held (saat di-Pilih/Gabung kembali ke POS).
 pesananRoutes.delete(
