@@ -23,9 +23,7 @@ export const createPesananSchema = z
   .object({
     items: z.array(pesananItemSchema).min(1, 'Pesanan harus memiliki minimal satu item'),
     customerNama: z.string().trim().max(100).optional(),
-    orderType: z
-      .enum(['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood'])
-      .optional(),
+    orderType: z.enum(['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood']).optional(),
     catatan: z.string().trim().max(500).optional(),
     mejaId: z.number().int().positive().optional(),
     memberId: z.number().int().positive().optional(),
@@ -44,6 +42,10 @@ export const pesananIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+export const pindahMejaSchema = z.object({
+  mejaId: z.number().int().positive(),
+});
+
 export const listPesananQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
@@ -55,3 +57,4 @@ export type PesananItemInput = z.infer<typeof pesananItemSchema>;
 export type OrderDiscountInput = z.infer<typeof orderDiscountSchema>;
 export type CreatePesananInput = z.infer<typeof createPesananSchema>;
 export type ListPesananQuery = z.infer<typeof listPesananQuerySchema>;
+export type PindahMejaInput = z.infer<typeof pindahMejaSchema>;

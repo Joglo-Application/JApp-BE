@@ -159,4 +159,50 @@ export const pesananPaths = {
       },
     },
   },
+  '/pesanan/{id}/meja': {
+    patch: {
+      tags: ['Pesanan'],
+      summary: 'Pindah meja',
+      description:
+        '**Admin & Kasir.** Memindahkan pesanan aktif (`in_progress`) ke meja lain: ' +
+        'meng-update `mejaId` pesanan, menandai meja tujuan `occupied` dan meja asal ' +
+        '`available`. Gagal (409) bila meja tujuan sudah dipakai pesanan aktif lain.',
+      parameters: [idPathParam],
+      requestBody: {
+        required: true,
+        content: {
+          'application/json': {
+            schema: {
+              type: 'object',
+              required: ['mejaId'],
+              properties: { mejaId: { type: 'integer', example: 3 } },
+            },
+          },
+        },
+      },
+      responses: {
+        '200': {
+          description: 'Pesanan dipindahkan',
+          content: {
+            'application/json': {
+              schema: {
+                allOf: [
+                  { $ref: '#/components/schemas/SuccessResponse' },
+                  {
+                    type: 'object',
+                    properties: { data: { $ref: '#/components/schemas/Pesanan' } },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        '400': commonResponses.ValidationError,
+        '401': commonResponses.Unauthorized,
+        '403': commonResponses.Forbidden,
+        '404': commonResponses.NotFound,
+        '409': commonResponses.Conflict,
+      },
+    },
+  },
 };
