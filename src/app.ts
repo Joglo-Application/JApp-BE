@@ -22,6 +22,8 @@ import { stokGudangRoutes } from '@/modules/stok-gudang/stok-gudang.routes';
 import { kitchenRoutes } from '@/modules/kitchen/kitchen.routes';
 import { logTransaksiRoutes } from '@/modules/log-transaksi/log-transaksi.routes';
 import { shiftKasRoutes } from '@/modules/shift-kas/shift-kas.routes';
+import { logGudangRoutes } from '@/modules/log-gudang/log-gudang.routes';
+import { absensiRoutes } from '@/modules/absensi/absensi.routes';
 import { docsRoutes } from '@/docs/docs.routes';
 import { success } from '@/shared/response';
 import { env } from '@/config/env';
@@ -75,6 +77,8 @@ export function createApp(): Hono<AppBindings> {
   api.route('/kitchen', kitchenRoutes);
   api.route('/log-transaksi', logTransaksiRoutes);
   api.route('/shift-kas', shiftKasRoutes);
+  api.route('/log-gudang', logGudangRoutes);
+  api.route('/absensi', absensiRoutes);
 
   app.route('/api/v1', api);
   app.route('/docs', docsRoutes);
