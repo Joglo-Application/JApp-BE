@@ -15,7 +15,7 @@ export const logTransaksiPaths = {
       summary: 'List audit log aksi POS',
       description: [
         'Untuk panel Laporan → Log Transaksi. Filter per tanggal & tipe, terbaru dulu.',
-        'Bentuk cocok dengan `LogTransaksiEntry` di FE. Role: **admin, owner, kasir**.',
+        'Bentuk cocok dengan `LogTransaksiEntry` di FE. Role: **admin, owner, kasir, supervisor**.',
       ].join('\n'),
       parameters: [
         {

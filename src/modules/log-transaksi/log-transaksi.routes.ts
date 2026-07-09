@@ -19,9 +19,10 @@ logTransaksiRoutes.post(
 );
 
 // GET /log-transaksi?date=YYYY-MM-DD&tipe=ADD_QTY — daftar untuk panel Laporan.
+// Dilihat oleh kasir, admin, owner, dan supervisor (SPV punya menu Log Transaksi).
 logTransaksiRoutes.get(
   '/',
-  requireRole('admin', 'owner', 'kasir'),
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
   validate('query', listLogQuerySchema),
   listLogHandler,
 );
