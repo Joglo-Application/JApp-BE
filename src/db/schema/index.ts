@@ -13,4 +13,5 @@ export * from './transaksi-bahan-masuk';
 export * from './transaksi-bahan-keluar';
 export * from './pembayaran';
 export * from './log-transaksi';
+export * from './shift-kas';
 export * from '../relations';

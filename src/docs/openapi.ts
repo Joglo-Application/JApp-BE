@@ -17,6 +17,7 @@ import { inventoriPaths } from './paths/inventori';
 import { stokGudangPaths } from './paths/stok-gudang';
 import { kitchenPaths } from './paths/kitchen';
 import { logTransaksiPaths } from './paths/log-transaksi';
+import { shiftKasPaths } from './paths/shift-kas';
 // import { env } from '@/config/env';
 
 export function getOpenApiSpec() {
@@ -71,6 +72,7 @@ export function getOpenApiSpec() {
       { name: 'Inventori', description: 'Stok produk untuk POS (dari menu)' },
       { name: 'Stok Gudang', description: 'Stok bahan baku untuk owner' },
       { name: 'Kitchen', description: 'Order aktif untuk dapur' },
+      { name: 'Shift Kas', description: 'Shift kas kasir (kas awal, setoran/penarikan, tutup)' },
     ],
     paths: {
       ...healthPaths,
@@ -91,6 +93,7 @@ export function getOpenApiSpec() {
       ...stokGudangPaths,
       ...kitchenPaths,
       ...logTransaksiPaths,
+      ...shiftKasPaths,
     },
     components: {
       securitySchemes,
