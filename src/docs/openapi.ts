@@ -58,7 +58,7 @@ export function getOpenApiSpec() {
     tags: [
       { name: 'Health', description: 'Server healthcheck' },
       { name: 'Auth', description: 'Login & user info' },
-      { name: 'Users', description: 'Manajemen user (admin only)' },
+      { name: 'Users', description: 'Manajemen user Manajemen user (admin only) pegawai (admin, owner)' },
       { name: 'Bahan Baku', description: 'Master data bahan baku' },
       { name: 'Suppliers', description: 'Master data supplier' },
       { name: 'Menus', description: 'Master data menu jual' },

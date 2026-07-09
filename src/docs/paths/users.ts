@@ -5,7 +5,7 @@ export const usersPaths = {
     get: {
       tags: ['Users'],
       summary: 'List users',
-      description: 'List users dengan pagination & search. **Admin only.**',
+      description: 'List users dengan pagination & search. Role: **admin, owner** (owner tak bisa kelola akun/role admin).',
       parameters: [...paginationParams],
       responses: {
         '200': {
@@ -23,7 +23,7 @@ export const usersPaths = {
     post: {
       tags: ['Users'],
       summary: 'Create user',
-      description: 'Buat user baru. **Admin only.**',
+      description: 'Buat user baru. Role: **admin, owner** (owner tak bisa kelola akun/role admin).',
       requestBody: {
         required: true,
         content: {
@@ -68,7 +68,7 @@ export const usersPaths = {
     get: {
       tags: ['Users'],
       summary: 'Get user by ID',
-      description: 'Detail user. **Admin only.**',
+      description: 'Detail user. Role: **admin, owner** (owner tak bisa kelola akun/role admin).',
       parameters: [idPathParam],
       responses: {
         '200': {
@@ -92,7 +92,7 @@ export const usersPaths = {
     patch: {
       tags: ['Users'],
       summary: 'Update user',
-      description: 'Update user (partial). **Admin only.**',
+      description: 'Update user (partial). Role: **admin, owner** (owner tak bisa kelola akun/role admin).',
       parameters: [idPathParam],
       requestBody: {
         required: true,
@@ -126,7 +126,7 @@ export const usersPaths = {
     delete: {
       tags: ['Users'],
       summary: 'Delete user',
-      description: 'Hapus user. **Admin only.**',
+      description: 'Hapus user. Role: **admin, owner** (owner tak bisa kelola akun/role admin).',
       parameters: [idPathParam],
       responses: {
         '200': {

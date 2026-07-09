@@ -23,19 +23,19 @@ export const getUserHandler: Handler<AppBindings> = async (c) => {
 
 export const createUserHandler: Handler<AppBindings> = async (c) => {
   const input = (await c.req.json()) as CreateUserInput;
-  const user = await userService.createUser(input);
+  const user = await userService.createUser(input, c.get('user')?.role);
   return c.json(success(user), 201);
 };
 
 export const updateUserHandler: Handler<AppBindings> = async (c) => {
   const id = Number(c.req.param('id'));
   const input = (await c.req.json()) as UpdateUserInput;
-  const user = await userService.updateUser(id, input);
+  const user = await userService.updateUser(id, input, c.get('user')?.role);
   return c.json(success(user));
 };
 
 export const deleteUserHandler: Handler<AppBindings> = async (c) => {
   const id = Number(c.req.param('id'));
-  await userService.deleteUser(id);
+  await userService.deleteUser(id, c.get('user')?.role);
   return c.json(success({ deleted: true }));
 };
