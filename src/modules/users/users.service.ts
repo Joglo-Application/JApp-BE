@@ -1,7 +1,7 @@
 import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { users } from '@/db/schema/users';
-import { ConflictError, NotFoundError } from '@/shared/errors';
+import { ConflictError, ForbiddenError, NotFoundError } from '@/shared/errors';
 import { hashPassword } from '@/utils/password';
 import { getPaginationParams, type PaginationQuery } from '@/shared/pagination';
 import type { CreateUserInput, UpdateUserInput } from './users.schema';
@@ -53,7 +53,12 @@ export async function getUserById(id: number) {
   return user;
 }
 
-export async function createUser(input: CreateUserInput) {
+export async function createUser(input: CreateUserInput, actorRole?: string) {
+  // Owner boleh kelola pegawai, tapi tidak boleh membuat akun admin.
+  if (actorRole === 'owner' && input.role === 'admin') {
+    throw new ForbiddenError('Owner tidak dapat membuat akun admin');
+  }
+
   const [existing] = await db
     .select({ userId: users.userId })
     .from(users)
@@ -70,8 +75,12 @@ export async function createUser(input: CreateUserInput) {
   return created;
 }
 
-export async function updateUser(id: number, input: UpdateUserInput) {
-  await getUserById(id);
+export async function updateUser(id: number, input: UpdateUserInput, actorRole?: string) {
+  const target = await getUserById(id);
+  // Owner tidak boleh menyentuh akun admin atau menaikkan role jadi admin.
+  if (actorRole === 'owner' && (target.role === 'admin' || input.role === 'admin')) {
+    throw new ForbiddenError('Owner tidak dapat mengubah akun/role admin');
+  }
 
   if (input.username) {
     const [conflict] = await db
@@ -98,7 +107,10 @@ export async function updateUser(id: number, input: UpdateUserInput) {
   return updated;
 }
 
-export async function deleteUser(id: number) {
-  await getUserById(id);
+export async function deleteUser(id: number, actorRole?: string) {
+  const target = await getUserById(id);
+  if (actorRole === 'owner' && target.role === 'admin') {
+    throw new ForbiddenError('Owner tidak dapat menghapus akun admin');
+  }
   await db.delete(users).where(eq(users.userId, id));
 }

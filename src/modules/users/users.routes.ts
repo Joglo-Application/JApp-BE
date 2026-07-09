@@ -19,7 +19,9 @@ import type { AppBindings } from '@/types/hono';
 
 export const usersRoutes = new Hono<AppBindings>();
 
-usersRoutes.use('*', authMiddleware, requireRole('admin'));
+// Admin & owner boleh kelola pegawai. Owner dibatasi (tak bisa sentuh akun/role
+// admin) di lapisan service.
+usersRoutes.use('*', authMiddleware, requireRole('admin', 'owner'));
 
 usersRoutes.get('/', validate('query', paginationQuerySchema), listUsersHandler);
 usersRoutes.get('/:id', validate('param', userIdParamSchema), getUserHandler);
