@@ -7,19 +7,39 @@ const tanggalSchema = z
 export const rentangQuerySchema = z.object({
   start: tanggalSchema.optional(),
   end: tanggalSchema.optional(),
+  status: z.enum(['draft', 'posted', 'cancelled']).optional(),
 });
 
 export const createOpnameSchema = z.object({
-  bahanId: z.number().int().positive(),
-  /** Hasil hitung fisik di gudang. Selisih terhadap stok sistem dicatat. */
-  stokFisik: z.number().min(0),
   catatan: z.string().trim().max(500).optional(),
+  /** true = langsung diposting sehingga stok bahan ikut disesuaikan. */
+  langsungPosting: z.boolean().default(false),
+  items: z
+    .array(
+      z.object({
+        bahanId: z.number().int().positive(),
+        /** Hasil hitung fisik di gudang. */
+        stokFisik: z.number().min(0),
+      }),
+    )
+    .min(1, 'Dokumen harus memiliki minimal satu item'),
 });
 
 export const createProduksiSchema = z.object({
-  menuId: z.number().int().positive(),
-  jumlah: z.number().int().positive(),
   catatan: z.string().trim().max(500).optional(),
+  langsungPosting: z.boolean().default(false),
+  items: z
+    .array(
+      z.object({
+        menuId: z.number().int().positive(),
+        jumlah: z.number().int().positive(),
+      }),
+    )
+    .min(1, 'Dokumen harus memiliki minimal satu item'),
+});
+
+export const idParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
 });
 
 export type RentangQuery = z.infer<typeof rentangQuerySchema>;
