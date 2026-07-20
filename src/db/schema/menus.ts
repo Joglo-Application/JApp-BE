@@ -1,10 +1,19 @@
 import { pgTable, serial, varchar, integer, boolean, date, text } from 'drizzle-orm/pg-core';
 import { timestamps } from './_helpers';
+import { kategori } from './kategori';
 
 export const menus = pgTable('menus', {
   menuId: serial('menu_id').primaryKey(),
   namaMenu: varchar('nama_menu', { length: 100 }).notNull(),
+  /**
+   * Nama kategori yang ditampilkan. Dipertahankan sebagai kolom denormalisasi
+   * supaya respons API lama tidak berubah bentuk; `kategoriId` di bawah adalah
+   * sumber kebenarannya dan keduanya selalu disinkronkan di lapisan service.
+   */
   kategori: varchar('kategori', { length: 50 }).notNull(),
+  kategoriId: integer('kategori_id').references(() => kategori.kategoriId, {
+    onDelete: 'set null',
+  }),
   harga: integer('harga').notNull(),
   isActive: boolean('is_active').notNull().default(true),
   // Stok level produk untuk tampilan inventori POS (GET /inventori).

@@ -37,6 +37,10 @@ import {
   produksiStokRoutes,
   stokOpnameRoutes,
 } from '@/modules/stok-dokumen/stok-dokumen.routes';
+import {
+  stokKeluarRoutes,
+  stokMasukRoutes,
+} from '@/modules/stok-mutasi/stok-mutasi.routes';
 import { uploadRoutes } from '@/modules/upload/upload.routes';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { docsRoutes } from '@/docs/docs.routes';
@@ -103,6 +107,8 @@ export function createApp(): Hono<AppBindings> {
   api.route('/metode-pembayaran', metodePembayaranRoutes);
   api.route('/stok-opname', stokOpnameRoutes);
   api.route('/produksi-stok', produksiStokRoutes);
+  api.route('/stok-masuk', stokMasukRoutes);
+  api.route('/stok-keluar', stokKeluarRoutes);
   api.route('/upload', uploadRoutes);
 
   app.route('/api/v1', api);

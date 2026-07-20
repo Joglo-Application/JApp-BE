@@ -22,6 +22,8 @@ export const createMenuSchema = z
   .object({
     namaMenu: z.string().trim().min(1).max(100),
     kategori: kategoriString,
+    // Opsional: bila diisi, namanya diambil dari master dan `kategori` diabaikan.
+    kategoriId: z.number().int().positive().optional(),
     harga: z.number().int().min(0),
     isActive: z.boolean().default(true),
     // Stok produk untuk tampilan inventori POS.
@@ -69,6 +71,7 @@ export const updateMenuSchema = z
   .object({
     namaMenu: z.string().trim().min(1).max(100).optional(),
     kategori: kategoriString.optional(),
+    kategoriId: z.number().int().positive().optional(),
     harga: z.number().int().min(0).optional(),
     isActive: z.boolean().optional(),
     stok: z.number().int().min(0).optional(),
