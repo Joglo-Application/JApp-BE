@@ -1,5 +1,5 @@
 {
-  "id": "4694105e-a58c-4e93-8acb-3d38bc3dd46a",
+  "id": "cc9aaefb-5dec-47ba-9e0e-79aa6f69ae27",
   "prevId": "5bfebf58-4aaf-441c-9def-c52206bb335f",
   "version": "7",
   "dialect": "postgresql",
@@ -2284,8 +2284,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.metode_pembayaran": {
-      "name": "metode_pembayaran",
+    "public.master_metode_pembayaran": {
+      "name": "master_metode_pembayaran",
       "schema": "",
       "columns": {
         "metode_id": {
