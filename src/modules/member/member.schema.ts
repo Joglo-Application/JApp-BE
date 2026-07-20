@@ -1,9 +1,20 @@
 import { z } from 'zod';
 
+const profilFields = {
+  gender: z.string().trim().max(20).optional(),
+  tanggalLahir: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD')
+    .optional(),
+  alamat: z.string().trim().max(500).optional(),
+  catatan: z.string().trim().max(500).optional(),
+};
+
 export const createMemberSchema = z.object({
   nama: z.string().trim().min(1).max(100),
   noTelp: z.string().trim().min(5).max(20).optional(),
   email: z.string().trim().email().max(100).optional(),
+  ...profilFields,
 });
 
 export const updateMemberSchema = z
@@ -11,6 +22,7 @@ export const updateMemberSchema = z
     nama: z.string().trim().min(1).max(100).optional(),
     noTelp: z.string().trim().min(5).max(20).optional(),
     email: z.string().trim().email().max(100).optional(),
+    ...profilFields,
   })
   .refine((d) => Object.keys(d).length > 0, { message: 'Minimal satu field harus diisi' });
 
