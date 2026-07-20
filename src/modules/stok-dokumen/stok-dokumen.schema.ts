@@ -16,11 +16,22 @@ export const createOpnameSchema = z.object({
   langsungPosting: z.boolean().default(false),
   items: z
     .array(
-      z.object({
-        bahanId: z.number().int().positive(),
-        /** Hasil hitung fisik di gudang. */
-        stokFisik: z.number().min(0),
-      }),
+      z
+        .object({
+          sumber: z.enum(['inventori', 'stok_gudang']).default('stok_gudang'),
+          bahanId: z.number().int().positive().optional(),
+          menuId: z.number().int().positive().optional(),
+          /** Hasil hitung fisik. */
+          stokFisik: z.number().min(0),
+        })
+        .refine(
+          (d) =>
+            d.sumber === 'inventori' ? d.menuId !== undefined : d.bahanId !== undefined,
+          {
+            message:
+              'Item sumber "inventori" wajib mengisi menuId; "stok_gudang" wajib mengisi bahanId',
+          },
+        ),
     )
     .min(1, 'Dokumen harus memiliki minimal satu item'),
 });

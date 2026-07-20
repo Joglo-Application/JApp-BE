@@ -4,7 +4,7 @@ import { timestamps } from './_helpers';
 import { bahanBaku } from './bahan-baku';
 import { menus } from './menus';
 import { users } from './users';
-import { stokDokumenStatusEnum } from './stok-mutasi';
+import { stokDokumenStatusEnum, stokSumberEnum } from './stok-mutasi';
 
 /**
  * Dokumen Stok Opname (SO-001): pencocokan stok sistem vs hasil hitung fisik.
@@ -31,9 +31,17 @@ export const stokOpnameItem = pgTable('stok_opname_item', {
   opnameId: integer('opname_id')
     .notNull()
     .references(() => stokOpname.opnameId, { onDelete: 'cascade' }),
-  bahanId: integer('bahan_id')
-    .notNull()
-    .references(() => bahanBaku.bahanId, { onDelete: 'restrict' }),
+  /**
+   * Satu dokumen opname boleh memuat bahan baku maupun produk jadi, sehingga
+   * penghitungan fisik gudang dan etalase bisa dicatat bersama.
+   */
+  sumber: stokSumberEnum('sumber').notNull().default('stok_gudang'),
+  bahanId: integer('bahan_id').references(() => bahanBaku.bahanId, {
+    onDelete: 'restrict',
+  }),
+  menuId: integer('menu_id').references(() => menus.menuId, {
+    onDelete: 'restrict',
+  }),
   /** Nama saat dokumen dibuat, agar riwayat tetap terbaca. */
   nama: varchar('nama', { length: 100 }).notNull(),
   stokSistem: numeric('stok_sistem', { precision: 12, scale: 3 }).notNull(),

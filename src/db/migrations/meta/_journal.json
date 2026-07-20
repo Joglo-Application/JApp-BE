@@ -120,6 +120,13 @@
       "when": 1784529370187,
       "tag": "0016_unique_kate_bishop",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1784532206994,
+      "tag": "0017_bitter_titanium_man",
+      "breakpoints": true
     }
   ]
 }

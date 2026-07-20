@@ -71,7 +71,9 @@ export async function listOpname(query: RentangQuery) {
     produk: items
       .filter((i) => i.opnameId === r.opnameId)
       .map((i) => ({
+        sumber: i.sumber,
         bahanId: i.bahanId,
+        menuId: i.menuId,
         nama: i.nama,
         stokSistem: Number(i.stokSistem),
         stokFisik: Number(i.stokFisik),
@@ -80,7 +82,10 @@ export async function listOpname(query: RentangQuery) {
   }));
 }
 
-/** Menyelaraskan stok bahan ke hasil hitung fisik pada dokumen. */
+/**
+ * Menyelaraskan stok ke hasil hitung fisik pada dokumen. Bahan baku memakai
+ * kolom numeric, sedangkan stok menu berupa bilangan bulat.
+ */
 async function terapkanOpname(tx: Tx, opnameId: number) {
   const items = await tx
     .select()
@@ -88,10 +93,17 @@ async function terapkanOpname(tx: Tx, opnameId: number) {
     .where(eq(stokOpnameItem.opnameId, opnameId));
 
   for (const item of items) {
-    await tx
-      .update(bahanBaku)
-      .set({ stok: item.stokFisik })
-      .where(eq(bahanBaku.bahanId, item.bahanId));
+    if (item.sumber === 'inventori' && item.menuId !== null) {
+      await tx
+        .update(menus)
+        .set({ stok: Math.round(Number(item.stokFisik)) })
+        .where(eq(menus.menuId, item.menuId));
+    } else if (item.bahanId !== null) {
+      await tx
+        .update(bahanBaku)
+        .set({ stok: item.stokFisik })
+        .where(eq(bahanBaku.bahanId, item.bahanId));
+    }
   }
 }
 
@@ -103,12 +115,28 @@ export async function createOpname(userId: number, input: CreateOpnameInput) {
   const kode = await nextKode('SO', stokOpname);
 
   return db.transaction(async (tx) => {
-    const bahanIds = input.items.map((i) => i.bahanId);
-    const bahanRows = await tx
-      .select({ id: bahanBaku.bahanId, nama: bahanBaku.namaBahan, stok: bahanBaku.stok })
-      .from(bahanBaku)
-      .where(inArray(bahanBaku.bahanId, bahanIds));
+    const bahanIds = input.items
+      .filter((i) => i.sumber === 'stok_gudang' && i.bahanId)
+      .map((i) => i.bahanId as number);
+    const menuIds = input.items
+      .filter((i) => i.sumber === 'inventori' && i.menuId)
+      .map((i) => i.menuId as number);
+
+    const bahanRows = bahanIds.length
+      ? await tx
+          .select({ id: bahanBaku.bahanId, nama: bahanBaku.namaBahan, stok: bahanBaku.stok })
+          .from(bahanBaku)
+          .where(inArray(bahanBaku.bahanId, bahanIds))
+      : [];
+    const menuRows = menuIds.length
+      ? await tx
+          .select({ id: menus.menuId, nama: menus.namaMenu, stok: menus.stok })
+          .from(menus)
+          .where(inArray(menus.menuId, menuIds))
+      : [];
+
     const bahanMap = new Map(bahanRows.map((b) => [b.id, b]));
+    const menuMap = new Map(menuRows.map((m) => [m.id, m]));
 
     const [dokumen] = await tx
       .insert(stokOpname)
@@ -121,14 +149,25 @@ export async function createOpname(userId: number, input: CreateOpnameInput) {
       .returning();
 
     for (const item of input.items) {
-      const bahan = bahanMap.get(item.bahanId);
-      if (!bahan) throw new NotFoundError(`Bahan baku id ${item.bahanId} tidak ditemukan`);
-      const stokSistem = Number(bahan.stok);
+      const dariMenu = item.sumber === 'inventori';
+      const sumberRow = dariMenu
+        ? menuMap.get(item.menuId as number)
+        : bahanMap.get(item.bahanId as number);
+      if (!sumberRow) {
+        throw new NotFoundError(
+          dariMenu
+            ? `Menu id ${item.menuId} tidak ditemukan`
+            : `Bahan baku id ${item.bahanId} tidak ditemukan`,
+        );
+      }
+      const stokSistem = Number(sumberRow.stok);
 
       await tx.insert(stokOpnameItem).values({
         opnameId: dokumen.opnameId,
-        bahanId: item.bahanId,
-        nama: bahan.nama,
+        sumber: item.sumber,
+        bahanId: dariMenu ? null : (item.bahanId as number),
+        menuId: dariMenu ? (item.menuId as number) : null,
+        nama: sumberRow.nama,
         stokSistem: toQty(stokSistem),
         stokFisik: toQty(item.stokFisik),
         selisih: toQty(item.stokFisik - stokSistem),
