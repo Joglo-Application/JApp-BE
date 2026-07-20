@@ -53,6 +53,7 @@ export async function createMeja(input: CreateMejaInput) {
       zona: input.zona ?? null,
       kapasitas: input.kapasitas,
       status: input.status,
+      areaId: input.areaId ?? null,
     })
     .returning();
   return created;
