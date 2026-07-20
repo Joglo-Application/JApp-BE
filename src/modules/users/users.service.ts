@@ -10,6 +10,8 @@ const userPublicColumns = {
   userId: users.userId,
   namaUser: users.namaUser,
   username: users.username,
+  email: users.email,
+  telepon: users.telepon,
   role: users.role,
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
@@ -69,7 +71,12 @@ export async function createUser(input: CreateUserInput, actorRole?: string) {
   const passwordHash = await hashPassword(input.password);
   const [created] = await db
     .insert(users)
-    .values({ ...input, password: passwordHash })
+    .values({
+      ...input,
+      password: passwordHash,
+      // PIN persetujuan disimpan sebagai hash, tidak pernah dikembalikan.
+      pin: input.pin ? await hashPassword(input.pin) : undefined,
+    })
     .returning(userPublicColumns);
 
   return created;
@@ -96,6 +103,9 @@ export async function updateUser(id: number, input: UpdateUserInput, actorRole?:
   const updates: Partial<typeof users.$inferInsert> = { ...input };
   if (input.password) {
     updates.password = await hashPassword(input.password);
+  }
+  if (input.pin) {
+    updates.pin = await hashPassword(input.pin);
   }
 
   const [updated] = await db
