@@ -22,6 +22,11 @@ export const getPesananHandler: Handler<AppBindings> = async (c) => {
   return c.json(success(data));
 };
 
+export const getStrukHandler: Handler<AppBindings> = async (c) => {
+  const data = await service.getStruk(Number(c.req.param('id')));
+  return c.json(success(data));
+};
+
 export const createPesananHandler: Handler<AppBindings> = async (c) => {
   const user = c.get('user');
   if (!user) throw new UnauthorizedError();

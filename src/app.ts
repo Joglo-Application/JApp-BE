@@ -26,6 +26,19 @@ import { logGudangRoutes } from '@/modules/log-gudang/log-gudang.routes';
 import { absensiRoutes } from '@/modules/absensi/absensi.routes';
 import { promoRoutes } from '@/modules/promo/promo.routes';
 import { loyaltyRoutes } from '@/modules/loyalty/loyalty.routes';
+import { laporanRoutes } from '@/modules/laporan/laporan.routes';
+import { pengaturanRoutes } from '@/modules/pengaturan/pengaturan.routes';
+import {
+  areaRoutes,
+  kategoriRoutes,
+  metodePembayaranRoutes,
+} from '@/modules/master/master.routes';
+import {
+  produksiStokRoutes,
+  stokOpnameRoutes,
+} from '@/modules/stok-dokumen/stok-dokumen.routes';
+import { uploadRoutes } from '@/modules/upload/upload.routes';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { docsRoutes } from '@/docs/docs.routes';
 import { success } from '@/shared/response';
 import { env } from '@/config/env';
@@ -83,9 +96,19 @@ export function createApp(): Hono<AppBindings> {
   api.route('/absensi', absensiRoutes);
   api.route('/promo', promoRoutes);
   api.route('/loyalty', loyaltyRoutes);
+  api.route('/laporan', laporanRoutes);
+  api.route('/pengaturan', pengaturanRoutes);
+  api.route('/area', areaRoutes);
+  api.route('/kategori', kategoriRoutes);
+  api.route('/metode-pembayaran', metodePembayaranRoutes);
+  api.route('/stok-opname', stokOpnameRoutes);
+  api.route('/produksi-stok', produksiStokRoutes);
+  api.route('/upload', uploadRoutes);
 
   app.route('/api/v1', api);
   app.route('/docs', docsRoutes);
+  // Gambar hasil unggahan disajikan statis dari direktori `uploads/`.
+  app.use('/uploads/*', serveStatic({ root: './' }));
 
   app.notFound(notFoundHandler);
   app.onError(errorHandler);

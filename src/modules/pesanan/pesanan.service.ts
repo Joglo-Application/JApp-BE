@@ -10,6 +10,8 @@ import { transaksiBahanKeluar } from '@/db/schema/transaksi-bahan-keluar';
 import { pembayaran } from '@/db/schema/pembayaran';
 import { meja } from '@/db/schema/meja';
 import { member } from '@/db/schema/member';
+import { users } from '@/db/schema/users';
+import { getGrup as getGrupPengaturan } from '../pengaturan/pengaturan.service';
 import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors';
 import { getPaginationParams } from '@/shared/pagination';
 import type { CreatePesananInput, ListPesananQuery, OrderDiscountInput } from './pesanan.schema';
@@ -329,6 +331,65 @@ export async function getPesananById(id: number) {
   const [bayar] = await db.select().from(pembayaran).where(eq(pembayaran.pesananId, id)).limit(1);
 
   return { ...row, items, pembayaran: bayar ?? null };
+}
+
+/**
+ * Payload struk untuk dicetak: identitas toko, kasir, meja, rincian item, dan
+ * pembayaran. Menggantikan tombol "Cetak" di POS yang sebelumnya tanpa aksi.
+ */
+export async function getStruk(id: number) {
+  const data = await getPesananById(id);
+
+  const [kasir] = await db
+    .select({ namaUser: users.namaUser })
+    .from(users)
+    .where(eq(users.userId, data.userId))
+    .limit(1);
+
+  const mejaRow = data.mejaId
+    ? await db
+        .select({ nomor: meja.nomor, zona: meja.zona })
+        .from(meja)
+        .where(eq(meja.mejaId, data.mejaId))
+        .limit(1)
+    : [];
+
+  const toko = await getGrupPengaturan('toko');
+
+  return {
+    toko,
+    kodeTransaksi: `TRX-${String(data.pesananId).padStart(4, '0')}`,
+    waktu: data.createdAt.toISOString(),
+    kasir: kasir?.namaUser ?? '',
+    meja: mejaRow[0]?.nomor ?? null,
+    zona: mejaRow[0]?.zona ?? null,
+    orderType: data.orderType,
+    customerNama: data.customerNama,
+    jumlahTamu: data.jumlahTamu,
+    catatan: data.catatan,
+    items: data.items.map((i) => ({
+      nama: i.namaMenu ?? i.namaCustom ?? '',
+      qty: i.jumlah,
+      hargaSatuan: i.hargaSatuan,
+      diskon: i.diskon,
+      subtotal: i.subtotal,
+      catatan: i.catatan,
+    })),
+    subtotal: data.subtotal,
+    biayaLayanan: data.serviceCharge,
+    pajak: data.pajak,
+    diskon: data.diskon,
+    promoNama: data.promoNama,
+    total: data.total,
+    pembayaran: data.pembayaran
+      ? {
+          metode: data.pembayaran.metode,
+          jumlahBayar: data.pembayaran.jumlahBayar,
+          kembalian: data.pembayaran.kembalian,
+        }
+      : null,
+    isReturned: data.returAt !== null,
+  };
 }
 
 /**

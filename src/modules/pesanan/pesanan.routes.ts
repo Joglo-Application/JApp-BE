@@ -13,6 +13,7 @@ import {
   createPesananHandler,
   deletePesananHandler,
   getPesananHandler,
+  getStrukHandler,
   listPesananHandler,
   pindahMejaHandler,
 } from './pesanan.handler';
@@ -25,6 +26,9 @@ pesananRoutes.use('*', authMiddleware);
 // Read: semua role
 pesananRoutes.get('/', validate('query', listPesananQuerySchema), listPesananHandler);
 pesananRoutes.get('/:id', validate('param', pesananIdParamSchema), getPesananHandler);
+
+// GET /pesanan/:id/struk — payload lengkap untuk dicetak (termasuk profil toko).
+pesananRoutes.get('/:id/struk', validate('param', pesananIdParamSchema), getStrukHandler);
 
 // Write: admin & kasir
 pesananRoutes.post(
