@@ -1,4 +1,8 @@
-CREATE TYPE "public"."kategori_jenis" AS ENUM('menu', 'stok', 'stok_gudang');--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "public"."kategori_jenis" AS ENUM('menu', 'stok', 'stok_gudang');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "pengaturan" (
 	"grup" varchar(60) PRIMARY KEY NOT NULL,
 	"nilai" jsonb NOT NULL,
@@ -25,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "kategori" (
 	"updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "metode_pembayaran" (
+CREATE TABLE IF NOT EXISTS "master_metode_pembayaran" (
 	"metode_id" serial PRIMARY KEY NOT NULL,
 	"nama" varchar(60) NOT NULL,
 	"kode" varchar(30) NOT NULL,
