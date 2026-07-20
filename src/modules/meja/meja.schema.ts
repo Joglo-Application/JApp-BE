@@ -7,6 +7,8 @@ export const createMejaSchema = z.object({
   zona: z.string().trim().max(50).optional(),
   kapasitas: z.number().int().min(1).max(100).default(4),
   status: statusEnum.default('available'),
+  /** Pengelompokan denah; diisi layar Pengaturan > Layout Toko. */
+  areaId: z.number().int().positive().optional(),
 });
 
 export const updateMejaSchema = z
@@ -15,6 +17,7 @@ export const updateMejaSchema = z
     zona: z.string().trim().max(50).optional(),
     kapasitas: z.number().int().min(1).max(100).optional(),
     status: statusEnum.optional(),
+    areaId: z.number().int().positive().nullable().optional(),
   })
   .refine((d) => Object.keys(d).length > 0, { message: 'Minimal satu field harus diisi' });
 
