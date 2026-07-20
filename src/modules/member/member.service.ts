@@ -73,6 +73,10 @@ export async function createMember(input: CreateMemberInput) {
       nama: input.nama,
       noTelp: input.noTelp ?? null,
       email: input.email ?? null,
+      gender: input.gender ?? null,
+      tanggalLahir: input.tanggalLahir ?? null,
+      alamat: input.alamat ?? null,
+      catatan: input.catatan ?? null,
       poin: 0,
     })
     .returning();
