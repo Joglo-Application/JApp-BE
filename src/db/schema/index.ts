@@ -17,4 +17,6 @@ export * from './shift-kas';
 export * from './log-gudang';
 export * from './absensi';
 export * from './promo';
+export * from './loyalty-reward';
+export * from './reservasi';
 export * from '../relations';

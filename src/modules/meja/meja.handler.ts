@@ -1,8 +1,29 @@
 import type { Handler } from 'hono';
 import { paginated, success } from '@/shared/response';
+import { UnauthorizedError } from '@/shared/errors';
 import * as service from './meja.service';
-import type { CreateMejaInput, UpdateMejaInput } from './meja.schema';
+import type { CreateMejaInput, CreateReservasiInput, UpdateMejaInput } from './meja.schema';
 import type { AppBindings } from '@/types/hono';
+
+export const listPesananMejaHandler: Handler<AppBindings> = async (c) => {
+  const data = await service.listPesananMeja(Number(c.req.param('id')));
+  return c.json(success(data));
+};
+
+export const createReservasiHandler: Handler<AppBindings> = async (c) => {
+  const user = c.get('user');
+  if (!user) throw new UnauthorizedError();
+  const body = (await c.req.json()) as CreateReservasiInput;
+  // Kolom timestamp butuh objek Date, sedangkan JSON mengirim string.
+  const input = { ...body, waktuReservasi: new Date(body.waktuReservasi) };
+  const data = await service.createReservasi(user.userId, Number(c.req.param('id')), input);
+  return c.json(success(data), 201);
+};
+
+export const cancelReservasiHandler: Handler<AppBindings> = async (c) => {
+  await service.cancelReservasi(Number(c.req.param('id')));
+  return c.json(success({ message: 'Reservasi dibatalkan' }));
+};
 
 export const listMejaHandler: Handler<AppBindings> = async (c) => {
   const q = c.req.query();

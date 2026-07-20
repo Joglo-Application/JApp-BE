@@ -21,11 +21,15 @@ export const updateEntrySchema = z
     message: 'Minimal satu field harus diisi',
   });
 
+const tanggalSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD');
+
 export const listShiftQuerySchema = z.object({
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD')
-    .optional(),
+  date: tanggalSchema.optional(),
+  // Rentang tanggal untuk layar Riwayat Shift. Diabaikan bila `date` diisi.
+  from: tanggalSchema.optional(),
+  to: tanggalSchema.optional(),
 });
 
 export const idParamSchema = z.object({

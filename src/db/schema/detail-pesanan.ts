@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, varchar, text } from 'drizzle-orm/pg-core';
+import { pgTable, serial, integer, varchar, text, boolean } from 'drizzle-orm/pg-core';
 import { pesanan } from './pesanan';
 import { menus } from './menus';
 
@@ -9,6 +9,8 @@ export const detailPesanan = pgTable('detail_pesanan', {
   diskon: integer('diskon').notNull().default(0),
   subtotal: integer('subtotal').notNull(),
   catatan: text('catatan'),
+  // Centang per item di layar dapur, agar progres terlihat lintas perangkat.
+  selesai: boolean('selesai').notNull().default(false),
   pesananId: integer('pesanan_id')
     .notNull()
     .references(() => pesanan.pesananId, { onDelete: 'cascade' }),

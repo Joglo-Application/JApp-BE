@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, gte, lte } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { shiftKas, shiftKasEntry } from '@/db/schema/shift-kas';
 import { users } from '@/db/schema/users';
@@ -150,7 +150,12 @@ export async function getShiftById(id: number) {
 export async function listShifts(query: ListShiftQuery, opts: { userId?: number }) {
   const conditions = [];
   if (opts.userId !== undefined) conditions.push(eq(shiftKas.userId, opts.userId));
-  if (query.date) conditions.push(eq(shiftKas.tanggal, query.date));
+  if (query.date) {
+    conditions.push(eq(shiftKas.tanggal, query.date));
+  } else {
+    if (query.from) conditions.push(gte(shiftKas.tanggal, query.from));
+    if (query.to) conditions.push(lte(shiftKas.tanggal, query.to));
+  }
 
   const rows = await db
     .select({ shiftId: shiftKas.shiftId })

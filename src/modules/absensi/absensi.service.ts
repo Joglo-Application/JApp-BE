@@ -35,6 +35,41 @@ export async function checkOut(userId: number) {
 }
 
 /**
+ * Absensi milik pengguna yang sedang login: status hari ini + riwayat.
+ * Dipakai halaman Absensi karyawan (semua role) — `GET /absensi` dibatasi
+ * SPV/owner/admin sehingga kasir tidak bisa memakainya.
+ */
+export async function getAbsensiSaya(userId: number, limit = 30) {
+  const rows = await db
+    .select({
+      tanggal: absensi.tanggal,
+      jamMasuk: absensi.jamMasuk,
+      jamKeluar: absensi.jamKeluar,
+    })
+    .from(absensi)
+    .where(eq(absensi.userId, userId))
+    .orderBy(desc(absensi.tanggal))
+    .limit(limit);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const hariIni = rows.find((r) => r.tanggal === today);
+
+  return {
+    hariIni: {
+      sudahMasuk: hariIni !== undefined,
+      sudahKeluar: Boolean(hariIni?.jamKeluar),
+      jamMasuk: hariIni?.jamMasuk.toISOString() ?? null,
+      jamKeluar: hariIni?.jamKeluar?.toISOString() ?? null,
+    },
+    riwayat: rows.map((r) => ({
+      tanggal: r.tanggal,
+      jamMasuk: r.jamMasuk.toISOString(),
+      jamKeluar: r.jamKeluar?.toISOString() ?? null,
+    })),
+  };
+}
+
+/**
  * Daftar absensi (untuk SPV → Absensi Karyawan). Filter per tanggal.
  * Bentuk cocok dengan `_AbsensiRecord` di FE (nama, tanggal, jamMasuk, jamKeluar).
  */

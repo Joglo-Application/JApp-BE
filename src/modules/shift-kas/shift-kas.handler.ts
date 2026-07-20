@@ -68,7 +68,7 @@ export const listShiftHandler: Handler<AppBindings> = async (c) => {
   // Kasir hanya lihat shift miliknya; admin/owner/supervisor lihat semua.
   const seeAll = user.role === 'admin' || user.role === 'owner' || user.role === 'supervisor';
   const data = await service.listShifts(
-    { date: q.date },
+    { date: q.date, from: q.from, to: q.to },
     { userId: seeAll ? undefined : user.userId },
   );
   return c.json(success(data));
