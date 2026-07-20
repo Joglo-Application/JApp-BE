@@ -58,13 +58,24 @@ mejaRoutes.patch(
   updateMejaStatusHandler,
 );
 
-// Kelola master meja: admin
-mejaRoutes.post('/', requireRole('admin'), validate('json', createMejaSchema), createMejaHandler);
+// Kelola master meja: admin & owner. Owner mengatur denah lewat layar
+// Pengaturan > Layout Toko, jadi ia perlu bisa menambah dan menghapus meja.
+mejaRoutes.post(
+  '/',
+  requireRole('admin', 'owner'),
+  validate('json', createMejaSchema),
+  createMejaHandler,
+);
 mejaRoutes.patch(
   '/:id',
-  requireRole('admin'),
+  requireRole('admin', 'owner'),
   validate('param', mejaIdParamSchema),
   validate('json', updateMejaSchema),
   updateMejaHandler,
 );
-mejaRoutes.delete('/:id', requireRole('admin'), validate('param', mejaIdParamSchema), deleteMejaHandler);
+mejaRoutes.delete(
+  '/:id',
+  requireRole('admin', 'owner'),
+  validate('param', mejaIdParamSchema),
+  deleteMejaHandler,
+);
