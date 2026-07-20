@@ -3,6 +3,7 @@ import { db } from '@/config/database';
 import { menus } from '@/db/schema/menus';
 import { resepMenu } from '@/db/schema/resep-menu';
 import { bahanBaku } from '@/db/schema/bahan-baku';
+import { kategori } from '@/db/schema/kategori';
 import { ConflictError, NotFoundError } from '@/shared/errors';
 import { getPaginationParams, type PaginationQuery } from '@/shared/pagination';
 import type {
@@ -52,11 +53,54 @@ export async function getMenuById(id: number) {
   return { ...menu, resep };
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Menjaga `menus.kategori` (nama untuk ditampilkan) dan `menus.kategoriId`
+ * (acuan ke tabel master) tetap sepakat, dari arah mana pun datanya dikirim.
+ *
+ * Frontend saat ini masih mengirim nama kategori sebagai teks bebas, jadi nama
+ * yang belum terdaftar akan otomatis dibuatkan barisnya di master — kalau
+ * tidak, menu lama tidak akan bisa disimpan lagi.
+ */
+async function selaraskanKategori<T extends { kategori?: string; kategoriId?: number }>(
+  tx: Tx,
+  data: T,
+): Promise<T> {
+  if (data.kategoriId !== undefined) {
+    const [row] = await tx
+      .select({ nama: kategori.nama })
+      .from(kategori)
+      .where(eq(kategori.kategoriId, data.kategoriId))
+      .limit(1);
+    if (!row) throw new NotFoundError('Kategori tidak ditemukan');
+    return { ...data, kategori: row.nama };
+  }
+
+  if (data.kategori !== undefined) {
+    const [ada] = await tx
+      .select({ id: kategori.kategoriId })
+      .from(kategori)
+      .where(and(eq(kategori.jenis, 'menu'), eq(kategori.nama, data.kategori)))
+      .limit(1);
+    if (ada) return { ...data, kategoriId: ada.id };
+
+    const [dibuat] = await tx
+      .insert(kategori)
+      .values({ jenis: 'menu', nama: data.kategori })
+      .returning({ id: kategori.kategoriId });
+    return { ...data, kategoriId: dibuat.id };
+  }
+
+  return data;
+}
+
 export async function createMenu(input: CreateMenuInput) {
   const { resep, ...menuData } = input;
 
   return db.transaction(async (tx) => {
-    const [created] = await tx.insert(menus).values(menuData).returning();
+    const nilai = await selaraskanKategori(tx, menuData);
+    const [created] = await tx.insert(menus).values(nilai).returning();
 
     if (resep && resep.length > 0) {
       // Dedupe by bahanId (resep_menu has a unique (menu_id, bahan_id) index).
@@ -86,9 +130,10 @@ export async function updateMenu(id: number, input: UpdateMenuInput) {
 
     let updated = menu;
     if (Object.keys(menuData).length > 0) {
+      const nilai = await selaraskanKategori(tx, menuData);
       [updated] = await tx
         .update(menus)
-        .set(menuData)
+        .set(nilai)
         .where(eq(menus.menuId, id))
         .returning();
     }

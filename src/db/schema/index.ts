@@ -24,4 +24,5 @@ export * from './area';
 export * from './kategori';
 export * from './metode-pembayaran';
 export * from './stok-dokumen';
+export * from './stok-mutasi';
 export * from '../relations';

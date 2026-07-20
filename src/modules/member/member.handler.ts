@@ -4,6 +4,11 @@ import * as service from './member.service';
 import type { AdjustPoinInput, CreateMemberInput, UpdateMemberInput } from './member.schema';
 import type { AppBindings } from '@/types/hono';
 
+export const listTransaksiMemberHandler: Handler<AppBindings> = async (c) => {
+  const data = await service.listTransaksiMember(Number(c.req.param('id')));
+  return c.json(success(data));
+};
+
 export const listMemberHandler: Handler<AppBindings> = async (c) => {
   const q = c.req.query();
   const result = await service.listMember({

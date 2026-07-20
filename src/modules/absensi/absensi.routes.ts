@@ -7,6 +7,7 @@ import {
   absensiSayaHandler,
   checkInHandler,
   checkOutHandler,
+  exportAbsensiHandler,
   listAbsensiHandler,
 } from './absensi.handler';
 import type { AppBindings } from '@/types/hono';
@@ -21,6 +22,13 @@ absensiRoutes.post('/keluar', checkOutHandler);
 
 // GET /absensi/me — status hari ini + riwayat milik sendiri (semua role).
 absensiRoutes.get('/me', absensiSayaHandler);
+
+// GET /absensi/export?start=&end= — unduh rekap absensi sebagai CSV.
+absensiRoutes.get(
+  '/export',
+  requireRole('admin', 'owner', 'supervisor'),
+  exportAbsensiHandler,
+);
 
 // GET /absensi?date= — rekap untuk SPV/owner/admin.
 absensiRoutes.get(

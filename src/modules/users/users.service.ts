@@ -4,6 +4,7 @@ import { users } from '@/db/schema/users';
 import { ConflictError, ForbiddenError, NotFoundError } from '@/shared/errors';
 import { hashPassword } from '@/utils/password';
 import { getPaginationParams, type PaginationQuery } from '@/shared/pagination';
+import { toCsv, waktuLokal } from '@/shared/csv';
 import type { CreateUserInput, UpdateUserInput } from './users.schema';
 
 const userPublicColumns = {
@@ -42,6 +43,29 @@ export async function listUsers(query: PaginationQuery) {
       limit,
       total: Number(totalRows[0]?.count ?? 0),
     },
+  };
+}
+
+/** Daftar pegawai sebagai CSV untuk tombol Export di halaman Pegawai. */
+export async function exportUsers() {
+  const rows = await db
+    .select(userPublicColumns)
+    .from(users)
+    .orderBy(desc(users.userId));
+
+  return {
+    filename: `pegawai-${new Date().toISOString().slice(0, 10)}.csv`,
+    csv: toCsv(
+      ['Nama', 'Username', 'Email', 'Telepon', 'Role', 'Dibuat'],
+      rows.map((r) => [
+        r.namaUser,
+        r.username,
+        r.email,
+        r.telepon,
+        r.role,
+        waktuLokal(r.createdAt),
+      ]),
+    ),
   };
 }
 

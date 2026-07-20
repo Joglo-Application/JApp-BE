@@ -5,6 +5,15 @@ import type { CreateUserInput, UpdateUserInput } from './users.schema';
 import type { PaginationQuery } from '@/shared/pagination';
 import type { AppBindings } from '@/types/hono';
 
+export const exportUsersHandler: Handler<AppBindings> = async (c) => {
+  const { filename, csv } = await userService.exportUsers();
+  // Diawali BOM agar Excel membaca UTF-8 dengan benar.
+  return c.body(`\uFEFF${csv}`, 200, {
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${filename}"`,
+  });
+};
+
 export const listUsersHandler: Handler<AppBindings> = async (c) => {
   const query = c.req.query() as unknown as PaginationQuery;
   const result = await userService.listUsers({

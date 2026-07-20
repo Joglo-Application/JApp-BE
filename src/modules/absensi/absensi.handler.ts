@@ -25,6 +25,16 @@ export const absensiSayaHandler: Handler<AppBindings> = async (c) => {
   return c.json(success(data));
 };
 
+export const exportAbsensiHandler: Handler<AppBindings> = async (c) => {
+  const q = c.req.query();
+  const { filename, csv } = await service.exportAbsensi({ start: q.start, end: q.end });
+  // Diawali BOM agar Excel membaca UTF-8 dengan benar.
+  return c.body(`\uFEFF${csv}`, 200, {
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${filename}"`,
+  });
+};
+
 export const listAbsensiHandler: Handler<AppBindings> = async (c) => {
   const q = c.req.query();
   const data = await service.listAbsensi({ date: q.date });
