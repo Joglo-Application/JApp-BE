@@ -237,6 +237,7 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       .insert(pesanan)
       .values({
         userId,
+        jumlahTamu: input.jumlahTamu ?? null,
         status: isHold ? 'pending' : 'in_progress',
         subtotal,
         serviceCharge,

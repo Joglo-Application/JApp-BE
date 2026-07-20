@@ -20,6 +20,16 @@ export const updateMejaSchema = z
 
 export const updateMejaStatusSchema = z.object({ status: statusEnum });
 
+export const createReservasiSchema = z.object({
+  namaPemesan: z.string().trim().min(1).max(100),
+  noTelp: z.string().trim().max(20).optional(),
+  waktuReservasi: z.coerce.date(),
+  jumlahTamu: z.number().int().positive().max(999).default(1),
+  catatan: z.string().trim().max(500).optional(),
+});
+
+export type CreateReservasiInput = z.infer<typeof createReservasiSchema>;
+
 export const mejaIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 });

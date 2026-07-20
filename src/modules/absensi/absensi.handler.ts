@@ -18,6 +18,13 @@ export const checkOutHandler: Handler<AppBindings> = async (c) => {
   return c.json(success(data));
 };
 
+export const absensiSayaHandler: Handler<AppBindings> = async (c) => {
+  const user = c.get('user');
+  if (!user) throw new UnauthorizedError();
+  const data = await service.getAbsensiSaya(user.userId);
+  return c.json(success(data));
+};
+
 export const listAbsensiHandler: Handler<AppBindings> = async (c) => {
   const q = c.req.query();
   const data = await service.listAbsensi({ date: q.date });

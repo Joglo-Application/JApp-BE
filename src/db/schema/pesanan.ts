@@ -51,6 +51,8 @@ export const pesanan = pgTable('pesanan', {
   orderType: orderTypeEnum('order_type'),
   customerNama: varchar('customer_nama', { length: 100 }),
   catatan: text('catatan'),
+  /** Jumlah tamu — dipakai panel detail meja & laporan Guest Resto. */
+  jumlahTamu: integer('jumlah_tamu'),
 
   // Retur transaksi yang sudah dibayar. Status pesanan sengaja tidak diubah
   // agar transaksi tetap muncul di riwayat/laporan, hanya ditandai retur.

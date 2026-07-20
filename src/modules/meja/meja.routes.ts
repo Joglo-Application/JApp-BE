@@ -4,16 +4,20 @@ import { requireRole } from '@/middlewares/role.middleware';
 import { validate } from '@/middlewares/validation.middleware';
 import {
   createMejaSchema,
+  createReservasiSchema,
   listMejaQuerySchema,
   mejaIdParamSchema,
   updateMejaSchema,
   updateMejaStatusSchema,
 } from './meja.schema';
 import {
+  cancelReservasiHandler,
   createMejaHandler,
+  createReservasiHandler,
   deleteMejaHandler,
   getMejaHandler,
   listMejaHandler,
+  listPesananMejaHandler,
   updateMejaHandler,
   updateMejaStatusHandler,
 } from './meja.handler';
@@ -26,6 +30,24 @@ mejaRoutes.use('*', authMiddleware);
 // Read: semua role
 mejaRoutes.get('/', validate('query', listMejaQuerySchema), listMejaHandler);
 mejaRoutes.get('/:id', validate('param', mejaIdParamSchema), getMejaHandler);
+
+// GET /meja/:id/pesanan — pesanan aktif + total tamu + reservasi pada meja.
+mejaRoutes.get('/:id/pesanan', validate('param', mejaIdParamSchema), listPesananMejaHandler);
+
+// Reservasi meja: operasional (kasir/SPV/owner/admin).
+mejaRoutes.post(
+  '/:id/reservasi',
+  requireRole('admin', 'kasir', 'supervisor', 'owner'),
+  validate('param', mejaIdParamSchema),
+  validate('json', createReservasiSchema),
+  createReservasiHandler,
+);
+mejaRoutes.delete(
+  '/:id/reservasi',
+  requireRole('admin', 'kasir', 'supervisor', 'owner'),
+  validate('param', mejaIdParamSchema),
+  cancelReservasiHandler,
+);
 
 // Update status: admin & kasir (operasional saat melayani meja)
 mejaRoutes.patch(

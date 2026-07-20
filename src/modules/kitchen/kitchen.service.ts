@@ -1,4 +1,4 @@
-import { asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { pesanan } from '@/db/schema/pesanan';
 import { detailPesanan } from '@/db/schema/detail-pesanan';
@@ -11,9 +11,12 @@ function tipeLabel(orderType: string | null): string {
 }
 
 interface KitchenItem {
+  /** Dipakai untuk mencentang item lewat PATCH .../items/:detailId/done. */
+  detailId: number;
   nama: string;
   qty: number;
   catatan: string;
+  selesai: boolean;
 }
 
 /**
@@ -21,7 +24,7 @@ interface KitchenItem {
  * Saat pesanan dibayar (status `completed`) otomatis hilang dari daftar ini.
  * Dipetakan ke bentuk yang diharapkan `KitchenOrderModel.fromJson` di FE.
  */
-export async function listActiveOrders() {
+export async function listActiveOrders(date?: string) {
   const rows = await db
     .select({
       pesananId: pesanan.pesananId,
@@ -30,7 +33,11 @@ export async function listActiveOrders() {
     })
     .from(pesanan)
     // Order yang sedang diproses dapur (sebelumnya 'pending').
-    .where(eq(pesanan.status, 'in_progress'))
+    .where(
+      date
+        ? and(eq(pesanan.status, 'in_progress'), eq(pesanan.tanggal, date))
+        : eq(pesanan.status, 'in_progress'),
+    )
     // FIFO: yang paling lama masuk tampil duluan.
     .orderBy(asc(pesanan.createdAt));
 
@@ -39,9 +46,11 @@ export async function listActiveOrders() {
   const ids = rows.map((r) => r.pesananId);
   const details = await db
     .select({
+      detailId: detailPesanan.detailId,
       pesananId: detailPesanan.pesananId,
       jumlah: detailPesanan.jumlah,
       catatan: detailPesanan.catatan,
+      selesai: detailPesanan.selesai,
       namaMenu: menus.namaMenu,
       namaCustom: detailPesanan.namaCustom,
     })
@@ -53,9 +62,11 @@ export async function listActiveOrders() {
   for (const d of details) {
     const list = itemsByPesanan.get(d.pesananId) ?? [];
     list.push({
+      detailId: d.detailId,
       nama: d.namaMenu ?? d.namaCustom ?? '',
       qty: d.jumlah,
       catatan: d.catatan ?? '',
+      selesai: d.selesai,
     });
     itemsByPesanan.set(d.pesananId, list);
   }
@@ -97,4 +108,28 @@ export async function completeOrder(id: number) {
     .update(pesanan)
     .set({ status: 'completed' })
     .where(eq(pesanan.pesananId, id));
+}
+
+/**
+ * Menandai satu item pesanan selesai dimasak. Disimpan di DB (bukan state
+ * lokal) agar progres terlihat di semua perangkat dapur dan tidak hilang saat
+ * layar di-refresh.
+ */
+export async function setItemDone(pesananId: number, detailId: number, selesai: boolean) {
+  const [row] = await db
+    .select({ pesananId: detailPesanan.pesananId })
+    .from(detailPesanan)
+    .where(eq(detailPesanan.detailId, detailId))
+    .limit(1);
+  if (!row || row.pesananId !== pesananId) {
+    throw new NotFoundError('Item pesanan tidak ditemukan');
+  }
+
+  const [updated] = await db
+    .update(detailPesanan)
+    .set({ selesai })
+    .where(eq(detailPesanan.detailId, detailId))
+    .returning({ detailId: detailPesanan.detailId, selesai: detailPesanan.selesai });
+
+  return updated;
 }

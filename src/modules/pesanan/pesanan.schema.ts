@@ -27,6 +27,7 @@ export const createPesananSchema = z
     catatan: z.string().trim().max(500).optional(),
     mejaId: z.number().int().positive().optional(),
     memberId: z.number().int().positive().optional(),
+    jumlahTamu: z.number().int().positive().max(999).optional(),
     diskon: orderDiscountSchema.optional(),
     // true = simpan sebagai draft "held" (parkir): tanpa potong stok & tanpa
     // masuk dapur. Validasi metode/meja di-relax karena ini belum final.
