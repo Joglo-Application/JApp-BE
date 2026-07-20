@@ -78,6 +78,13 @@
       "when": 1783602449643,
       "tag": "0010_nebulous_nehzno",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784520682273,
+      "tag": "0011_slim_swarm",
+      "breakpoints": true
     }
   ]
 }

@@ -24,6 +24,7 @@ import { logTransaksiRoutes } from '@/modules/log-transaksi/log-transaksi.routes
 import { shiftKasRoutes } from '@/modules/shift-kas/shift-kas.routes';
 import { logGudangRoutes } from '@/modules/log-gudang/log-gudang.routes';
 import { absensiRoutes } from '@/modules/absensi/absensi.routes';
+import { promoRoutes } from '@/modules/promo/promo.routes';
 import { docsRoutes } from '@/docs/docs.routes';
 import { success } from '@/shared/response';
 import { env } from '@/config/env';
@@ -79,6 +80,7 @@ export function createApp(): Hono<AppBindings> {
   api.route('/shift-kas', shiftKasRoutes);
   api.route('/log-gudang', logGudangRoutes);
   api.route('/absensi', absensiRoutes);
+  api.route('/promo', promoRoutes);
 
   app.route('/api/v1', api);
   app.route('/docs', docsRoutes);

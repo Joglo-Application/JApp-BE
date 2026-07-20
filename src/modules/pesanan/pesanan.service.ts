@@ -1,4 +1,4 @@
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { env } from '@/config/env';
 import { pesanan } from '@/db/schema/pesanan';
@@ -17,6 +17,47 @@ import type { CreatePesananInput, ListPesananQuery, OrderDiscountInput } from '.
 /** Pembulatan numeric ke skala 3 desimal sesuai kolom DB stok. */
 function toQty(value: number): string {
   return value.toFixed(3);
+}
+
+/** Tipe transaksi Drizzle, agar helper bisa dipakai lintas modul. */
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/**
+ * Mengembalikan stok level menu (menu tanpa resep) berdasarkan detail pesanan.
+ * Pasangan dari pemotongan di langkah 4b `createPesanan`; dipakai saat
+ * pembatalan pesanan dan retur transaksi.
+ */
+export async function kembalikanStokMenu(tx: Tx, pesananId: number) {
+  const details = await tx
+    .select({ menuId: detailPesanan.menuId, jumlah: detailPesanan.jumlah })
+    .from(detailPesanan)
+    .where(eq(detailPesanan.pesananId, pesananId));
+
+  const menuIds = [
+    ...new Set(details.map((d) => d.menuId).filter((id): id is number => id !== null)),
+  ];
+  if (menuIds.length === 0) return;
+
+  const reseps = await tx
+    .select({ menuId: resepMenu.menuId })
+    .from(resepMenu)
+    .where(inArray(resepMenu.menuId, menuIds));
+  const punyaResep = new Set(reseps.map((r) => r.menuId));
+
+  // Hanya menu ber-`trackStok` yang stoknya dipotong saat penjualan.
+  const tracked = await tx
+    .select({ menuId: menus.menuId })
+    .from(menus)
+    .where(and(inArray(menus.menuId, menuIds), eq(menus.trackStok, true)));
+  const dilacak = new Set(tracked.map((m) => m.menuId));
+
+  for (const d of details) {
+    if (d.menuId === null || punyaResep.has(d.menuId) || !dilacak.has(d.menuId)) continue;
+    await tx
+      .update(menus)
+      .set({ stok: sql`${menus.stok} + ${d.jumlah}` })
+      .where(eq(menus.menuId, d.menuId));
+  }
 }
 
 /** Hitung nominal diskon pesanan dari subtotal. */
@@ -137,6 +178,34 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
           .set({ stok: toQty(Number(bahan.stok) - need) })
           .where(eq(bahanBaku.bahanId, bahanId));
       }
+    }
+
+    // 4b. Menu tanpa resep tidak punya bahan baku untuk dipotong, jadi stoknya
+    // dikelola di level menu (`menus.stok`). Tanpa ini produk jadi (mis. minuman
+    // botolan) bisa terjual tanpa batas dan angka di Inventori tidak pernah turun.
+    // Hanya berlaku bila menu ditandai `trackStok` — menu lama tidak terpengaruh.
+    const menuQty = new Map<number, number>();
+    if (!isHold) {
+      for (const item of input.items) {
+        if (item.menuId === undefined) continue;
+        if ((resepByMenu.get(item.menuId) ?? []).length > 0) continue;
+        if (!menuMap.get(item.menuId)?.trackStok) continue;
+        menuQty.set(item.menuId, (menuQty.get(item.menuId) ?? 0) + item.jumlah);
+      }
+    }
+    for (const [menuId, qty] of menuQty) {
+      const menu = menuMap.get(menuId)!;
+      if (menu.stok < qty) {
+        throw new ConflictError(
+          `Stok "${menu.namaMenu}" tidak mencukupi (tersedia ${menu.stok}, butuh ${qty})`,
+        );
+      }
+    }
+    for (const [menuId, qty] of menuQty) {
+      await tx
+        .update(menus)
+        .set({ stok: sql`${menus.stok} - ${qty}` })
+        .where(eq(menus.menuId, menuId));
     }
 
     // 5. Hitung rincian uang
@@ -299,6 +368,8 @@ export async function cancelPesanan(userId: number, id: number) {
         userId,
       });
     }
+
+    await kembalikanStokMenu(tx, id);
 
     const [updated] = await tx
       .update(pesanan)

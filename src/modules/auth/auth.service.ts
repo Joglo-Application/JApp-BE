@@ -1,10 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { users } from '@/db/schema/users';
 import { UnauthorizedError, NotFoundError } from '@/shared/errors';
 import { verifyPassword } from '@/utils/password';
 import { signToken } from '@/utils/jwt';
-import type { LoginInput } from './auth.schema';
+import type { LoginInput, VerifyPinInput } from './auth.schema';
 import type { UserRole } from '@/types/hono';
 
 export interface LoginResult {
@@ -48,6 +48,39 @@ export async function login(input: LoginInput): Promise<LoginResult> {
       role: user.role,
     },
   };
+}
+
+/** Role yang boleh menyetujui aksi terbatas lewat PIN. */
+const APPROVER_ROLES = ['admin', 'owner', 'supervisor'] as const;
+
+/**
+ * Verifikasi PIN persetujuan supervisor. Dipakai kasir untuk aksi yang butuh
+ * approval (buka blokir meja, batalkan pesanan). FE hanya mengirim PIN tanpa
+ * username, jadi PIN dicocokkan ke seluruh user berperan approver.
+ * Mengembalikan identitas penyetuju agar bisa dicatat di log transaksi.
+ */
+export async function verifyPin(input: VerifyPinInput) {
+  const approvers = await db
+    .select({
+      userId: users.userId,
+      namaUser: users.namaUser,
+      role: users.role,
+      pin: users.pin,
+    })
+    .from(users)
+    .where(and(inArray(users.role, [...APPROVER_ROLES]), isNotNull(users.pin)));
+
+  for (const approver of approvers) {
+    if (approver.pin && (await verifyPassword(input.pin, approver.pin))) {
+      return {
+        userId: approver.userId,
+        namaUser: approver.namaUser,
+        role: approver.role,
+      };
+    }
+  }
+
+  throw new UnauthorizedError('PIN tidak valid');
 }
 
 export async function getCurrentUser(userId: number) {

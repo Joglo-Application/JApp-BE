@@ -9,6 +9,12 @@ export const menus = pgTable('menus', {
   isActive: boolean('is_active').notNull().default(true),
   // Stok level produk untuk tampilan inventori POS (GET /inventori).
   stok: integer('stok').notNull().default(0),
+  /**
+   * true = stok menu ini dipotong & divalidasi saat penjualan (untuk barang
+   * jadi tanpa resep, mis. minuman botolan). Default false agar menu lama
+   * yang stoknya belum diisi tidak ikut terblokir.
+   */
+  trackStok: boolean('track_stok').notNull().default(false),
   stokMinimum: integer('stok_minimum').notNull().default(0),
   imageUrl: varchar('image_url', { length: 255 }),
   // Royalty point opsional (poin yang didapat per pembelian menu ini).

@@ -1,4 +1,14 @@
-import { pgTable, serial, date, pgEnum, integer, numeric, varchar, text } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  date,
+  pgEnum,
+  integer,
+  numeric,
+  varchar,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { timestamps } from './_helpers';
 import { users } from './users';
@@ -41,6 +51,14 @@ export const pesanan = pgTable('pesanan', {
   orderType: orderTypeEnum('order_type'),
   customerNama: varchar('customer_nama', { length: 100 }),
   catatan: text('catatan'),
+
+  // Retur transaksi yang sudah dibayar. Status pesanan sengaja tidak diubah
+  // agar transaksi tetap muncul di riwayat/laporan, hanya ditandai retur.
+  returAt: timestamp('retur_at', { withTimezone: true }),
+  returAlasan: text('retur_alasan'),
+  returUserId: integer('retur_user_id').references(() => users.userId, {
+    onDelete: 'set null',
+  }),
 
   // Relasi opsional
   mejaId: integer('meja_id').references(() => meja.mejaId, { onDelete: 'set null' }),

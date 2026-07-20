@@ -27,6 +27,8 @@ export const createMenuSchema = z
     // Stok produk untuk tampilan inventori POS.
     stok: z.number().int().min(0).default(0),
     stokMinimum: z.number().int().min(0).default(0),
+    // Aktifkan bila stok menu ini ingin dipotong & divalidasi saat penjualan.
+    trackStok: z.boolean().default(false),
     imageUrl: z.string().trim().max(255).optional(),
     // Royalty point opsional.
     royaltyPoint: z.number().int().min(0).optional(),
@@ -71,6 +73,7 @@ export const updateMenuSchema = z
     isActive: z.boolean().optional(),
     stok: z.number().int().min(0).optional(),
     stokMinimum: z.number().int().min(0).optional(),
+    trackStok: z.boolean().optional(),
     imageUrl: z.string().trim().max(255).nullable().optional(),
     royaltyPoint: z.number().int().min(0).nullable().optional(),
     isProdukKhusus: z.boolean().optional(),

@@ -15,6 +15,10 @@ export const users = pgTable('users', {
   namaUser: varchar('nama_user', { length: 100 }).notNull(),
   username: varchar('username', { length: 50 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
+  email: varchar('email', { length: 150 }),
+  telepon: varchar('telepon', { length: 30 }),
+  /** Hash PIN persetujuan (supervisor/owner). Null = belum diset. */
+  pin: varchar('pin', { length: 255 }),
   role: userRoleEnum('role').notNull().default('kasir'),
   ...timestamps,
 });
