@@ -6,6 +6,13 @@ export const tokoSchema = z.object({
   alamat: z.string().trim().max(255).default(''),
   telepon: z.string().trim().max(30).default(''),
   email: z.string().trim().max(150).default(''),
+  // Rincian wilayah — layar Pengaturan Toko mengumpulkannya terpisah dari
+  // alamat lengkap.
+  negara: z.string().trim().max(60).default(''),
+  provinsi: z.string().trim().max(60).default(''),
+  kota: z.string().trim().max(60).default(''),
+  kecamatan: z.string().trim().max(60).default(''),
+  kodePos: z.string().trim().max(10).default(''),
   logoUrl: z.string().trim().max(255).default(''),
   npwp: z.string().trim().max(40).default(''),
   latitude: z.number().min(-90).max(90).nullable().default(null),
@@ -24,12 +31,21 @@ export const posSchema = z.object({
 
 export const pajakSchema = z.object({
   pajakAktif: z.boolean().default(true),
+  /** Label pajak yang tampil di struk, mis. "Pajak Toko". */
+  namaPajak: z.string().trim().max(60).default('Pajak Toko'),
   pajakPersen: z.number().min(0).max(100).default(10),
   biayaLayananAktif: z.boolean().default(true),
   biayaLayananPersen: z.number().min(0).max(100).default(5),
+  // PPN dan Tax dikelola terpisah dari pajak toko di layar Pengaturan Pajak.
+  ppnAktif: z.boolean().default(false),
+  ppnPersen: z.number().min(0).max(100).default(0),
+  taxAktif: z.boolean().default(false),
+  taxPersen: z.number().min(0).max(100).default(0),
 });
 
 export const mataUangSchema = z.object({
+  /** Nama mata uang seperti dipilih di layar, mis. "Rupiah". */
+  nama: z.string().trim().max(40).default('Rupiah'),
   kode: z.string().trim().max(10).default('IDR'),
   simbol: z.string().trim().max(10).default('Rp'),
   pemisahRibuan: z.string().max(1).default('.'),

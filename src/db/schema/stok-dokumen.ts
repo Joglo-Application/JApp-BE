@@ -1,48 +1,72 @@
 import { pgTable, serial, date, numeric, integer, text, varchar } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import { createdAtOnly } from './_helpers';
+import { timestamps } from './_helpers';
 import { bahanBaku } from './bahan-baku';
 import { menus } from './menus';
 import { users } from './users';
+import { stokDokumenStatusEnum } from './stok-mutasi';
 
 /**
- * Stok opname: pencocokan stok sistem vs stok fisik. Selisihnya langsung
- * diterapkan ke `bahan_baku.stok` saat dokumen dibuat.
+ * Dokumen Stok Opname (SO-001): pencocokan stok sistem vs hasil hitung fisik.
+ *
+ * Berbentuk header + banyak baris item mengikuti layar Kelola Stok, sama
+ * seperti stok masuk/keluar. Bentuk datar sebelumnya (satu bahan per baris,
+ * tanpa status) tidak bisa mewakili dokumen yang dibuat dari layar itu.
+ * Selisih baru diterapkan ke stok bahan saat dokumen diposting.
  */
 export const stokOpname = pgTable('stok_opname', {
   opnameId: serial('opname_id').primaryKey(),
   kode: varchar('kode', { length: 30 }).notNull(),
   tanggal: date('tanggal').notNull().default(sql`CURRENT_DATE`),
-  bahanId: integer('bahan_id')
-    .notNull()
-    .references(() => bahanBaku.bahanId, { onDelete: 'restrict' }),
-  stokSistem: numeric('stok_sistem', { precision: 12, scale: 3 }).notNull(),
-  stokFisik: numeric('stok_fisik', { precision: 12, scale: 3 }).notNull(),
-  selisih: numeric('selisih', { precision: 12, scale: 3 }).notNull(),
   catatan: text('catatan'),
+  status: stokDokumenStatusEnum('status').notNull().default('draft'),
   userId: integer('user_id')
     .notNull()
     .references(() => users.userId, { onDelete: 'restrict' }),
-  ...createdAtOnly,
+  ...timestamps,
+});
+
+export const stokOpnameItem = pgTable('stok_opname_item', {
+  itemId: serial('item_id').primaryKey(),
+  opnameId: integer('opname_id')
+    .notNull()
+    .references(() => stokOpname.opnameId, { onDelete: 'cascade' }),
+  bahanId: integer('bahan_id')
+    .notNull()
+    .references(() => bahanBaku.bahanId, { onDelete: 'restrict' }),
+  /** Nama saat dokumen dibuat, agar riwayat tetap terbaca. */
+  nama: varchar('nama', { length: 100 }).notNull(),
+  stokSistem: numeric('stok_sistem', { precision: 12, scale: 3 }).notNull(),
+  stokFisik: numeric('stok_fisik', { precision: 12, scale: 3 }).notNull(),
+  selisih: numeric('selisih', { precision: 12, scale: 3 }).notNull(),
 });
 
 /**
- * Produksi stok: mengubah bahan baku menjadi stok menu siap jual
- * (untuk menu yang stoknya dikelola di level menu).
+ * Dokumen Produksi Stok (PS-001): mencatat produk jadi yang diproduksi.
+ * Menambah `menus.stok` saat diposting.
  */
 export const produksiStok = pgTable('produksi_stok', {
   produksiId: serial('produksi_id').primaryKey(),
   kode: varchar('kode', { length: 30 }).notNull(),
   tanggal: date('tanggal').notNull().default(sql`CURRENT_DATE`),
-  menuId: integer('menu_id')
-    .notNull()
-    .references(() => menus.menuId, { onDelete: 'restrict' }),
-  jumlah: integer('jumlah').notNull(),
   catatan: text('catatan'),
+  status: stokDokumenStatusEnum('status').notNull().default('draft'),
   userId: integer('user_id')
     .notNull()
     .references(() => users.userId, { onDelete: 'restrict' }),
-  ...createdAtOnly,
+  ...timestamps,
+});
+
+export const produksiStokItem = pgTable('produksi_stok_item', {
+  itemId: serial('item_id').primaryKey(),
+  produksiId: integer('produksi_id')
+    .notNull()
+    .references(() => produksiStok.produksiId, { onDelete: 'cascade' }),
+  menuId: integer('menu_id')
+    .notNull()
+    .references(() => menus.menuId, { onDelete: 'restrict' }),
+  nama: varchar('nama', { length: 100 }).notNull(),
+  jumlah: integer('jumlah').notNull(),
 });
 
 export type StokOpname = typeof stokOpname.$inferSelect;
