@@ -11,6 +11,7 @@ import {
 import {
   createUserHandler,
   deleteUserHandler,
+  exportUsersHandler,
   getUserHandler,
   listUsersHandler,
   updateUserHandler,
@@ -24,6 +25,8 @@ export const usersRoutes = new Hono<AppBindings>();
 usersRoutes.use('*', authMiddleware, requireRole('admin', 'owner'));
 
 usersRoutes.get('/', validate('query', paginationQuerySchema), listUsersHandler);
+// Didaftarkan sebelum '/:id' agar "export" tidak tertangkap sebagai id.
+usersRoutes.get('/export', exportUsersHandler);
 usersRoutes.get('/:id', validate('param', userIdParamSchema), getUserHandler);
 usersRoutes.post('/', validate('json', createUserSchema), createUserHandler);
 usersRoutes.patch(

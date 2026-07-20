@@ -15,6 +15,7 @@ import {
   deleteMemberHandler,
   getMemberHandler,
   listMemberHandler,
+  listTransaksiMemberHandler,
   updateMemberHandler,
 } from './member.handler';
 import type { AppBindings } from '@/types/hono';
@@ -26,6 +27,13 @@ memberRoutes.use('*', authMiddleware);
 // Read: semua role (kasir butuh cari member saat transaksi)
 memberRoutes.get('/', validate('query', listMemberQuerySchema), listMemberHandler);
 memberRoutes.get('/:id', validate('param', memberIdParamSchema), getMemberHandler);
+
+// GET /member/:id/transaksi — riwayat transaksi member (tab Riwayat di POS).
+memberRoutes.get(
+  '/:id/transaksi',
+  validate('param', memberIdParamSchema),
+  listTransaksiMemberHandler,
+);
 
 // Tulis: admin & kasir (kasir bisa daftarkan member baru & atur poin saat transaksi)
 memberRoutes.post(

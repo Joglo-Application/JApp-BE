@@ -7,6 +7,7 @@ import { menus } from '@/db/schema/menus';
 import { meja } from '@/db/schema/meja';
 import { transaksiBahanMasuk } from '@/db/schema/transaksi-bahan-masuk';
 import { memberPoinLog } from '@/db/schema/member-poin-log';
+import { toCsv } from '@/shared/csv';
 import type { RentangQuery } from './laporan.schema';
 
 /** Angka dari hasil agregasi Drizzle (string | null) → number. */
@@ -274,16 +275,6 @@ export async function dashboard(query: RentangQuery) {
     topProduk: produkData.items.slice(0, 5),
     topKategori: produkData.kategori.slice(0, 5),
   };
-}
-
-/** Escape satu sel CSV. */
-function csvCell(value: unknown): string {
-  const s = String(value ?? '');
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
-function toCsv(header: string[], rows: unknown[][]): string {
-  return [header, ...rows].map((r) => r.map(csvCell).join(',')).join('\n');
 }
 
 /**

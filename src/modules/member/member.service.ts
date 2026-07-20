@@ -2,6 +2,9 @@ import { count, desc, eq, ilike, or } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { member } from '@/db/schema/member';
 import { memberPoinLog } from '@/db/schema/member-poin-log';
+import { pesanan } from '@/db/schema/pesanan';
+import { pembayaran } from '@/db/schema/pembayaran';
+import { kodeTransaksi } from '../transaksi/transaksi.service';
 import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors';
 import { getPaginationParams } from '@/shared/pagination';
 import type {
@@ -87,6 +90,45 @@ export async function deleteMember(id: number) {
   const [existing] = await db.select().from(member).where(eq(member.memberId, id)).limit(1);
   if (!existing) throw new NotFoundError('Member tidak ditemukan');
   await db.delete(member).where(eq(member.memberId, id));
+}
+
+/** Label metode pembayaran sesuai yang ditampilkan frontend. */
+const metodeLabel: Record<string, string> = {
+  cash: 'TUNAI',
+  qris: 'QRIS',
+  qris_netzme: 'QRIS',
+  debit: 'Debit',
+  transfer: 'Transfer',
+};
+
+/**
+ * Riwayat transaksi seorang member (tab "Riwayat" di layar pilih member).
+ * Hanya pesanan yang sudah dibayar yang dihitung sebagai transaksi.
+ */
+export async function listTransaksiMember(id: number) {
+  await getMemberById(id);
+
+  const rows = await db
+    .select({
+      pesananId: pesanan.pesananId,
+      createdAt: pesanan.createdAt,
+      total: pesanan.total,
+      metode: pembayaran.metode,
+      returAt: pesanan.returAt,
+    })
+    .from(pesanan)
+    .innerJoin(pembayaran, eq(pembayaran.pesananId, pesanan.pesananId))
+    .where(eq(pesanan.memberId, id))
+    .orderBy(desc(pesanan.createdAt))
+    .limit(100);
+
+  return rows.map((r) => ({
+    kodeTransaksi: kodeTransaksi(r.pesananId),
+    waktu: r.createdAt.toISOString(),
+    total: r.total,
+    tipePembayaran: metodeLabel[r.metode] ?? r.metode,
+    isReturned: r.returAt !== null,
+  }));
 }
 
 /**

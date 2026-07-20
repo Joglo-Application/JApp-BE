@@ -1,8 +1,9 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { absensi } from '@/db/schema/absensi';
 import { users } from '@/db/schema/users';
 import { ConflictError, NotFoundError } from '@/shared/errors';
+import { jamLokal, toCsv } from '@/shared/csv';
 import type { ListAbsensiQuery } from './absensi.schema';
 
 /** Absen masuk (check-in) untuk hari ini. Satu kali per hari. */
@@ -32,6 +33,38 @@ export async function checkOut(userId: number) {
     .where(eq(absensi.absensiId, existing.absensiId))
     .returning();
   return updated;
+}
+
+/**
+ * Rekap absensi sebagai CSV untuk tombol Export di halaman Pegawai.
+ * Jam ditampilkan dalam waktu lokal toko, bukan UTC, agar langsung terbaca.
+ */
+export async function exportAbsensi(query: { start?: string; end?: string }) {
+  const kondisi = [];
+  if (query.start) kondisi.push(gte(absensi.tanggal, query.start));
+  if (query.end) kondisi.push(lte(absensi.tanggal, query.end));
+
+  const rows = await db
+    .select({
+      nama: users.namaUser,
+      role: users.role,
+      tanggal: absensi.tanggal,
+      jamMasuk: absensi.jamMasuk,
+      jamKeluar: absensi.jamKeluar,
+    })
+    .from(absensi)
+    .innerJoin(users, eq(users.userId, absensi.userId))
+    .where(kondisi.length ? and(...kondisi) : undefined)
+    .orderBy(desc(absensi.tanggal), users.namaUser);
+
+  const rentang = `${query.start ?? 'awal'}-sd-${query.end ?? 'akhir'}`;
+  return {
+    filename: `absensi-${rentang}.csv`,
+    csv: toCsv(
+      ['Nama', 'Role', 'Tanggal', 'Jam Masuk', 'Jam Keluar'],
+      rows.map((r) => [r.nama, r.role, r.tanggal, jamLokal(r.jamMasuk), jamLokal(r.jamKeluar)]),
+    ),
+  };
 }
 
 /**
