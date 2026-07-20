@@ -8,7 +8,7 @@ import type { CreateRewardInput, RedeemInput, UpdateRewardInput } from './loyalt
 
 type RewardRow = typeof loyaltyReward.$inferSelect;
 
-function toPublic(row: RewardRow, namaMenu?: string | null) {
+function toPublic(row: RewardRow, namaMenu?: string | null, hargaMenu?: number | null) {
   return {
     rewardId: row.rewardId,
     nama: row.nama,
@@ -18,6 +18,9 @@ function toPublic(row: RewardRow, namaMenu?: string | null) {
     diskonNilai: row.diskonNilai === null ? null : Number(row.diskonNilai),
     menuId: row.menuId,
     namaMenu: namaMenu ?? null,
+    // Harga menu ikut dikirim supaya kasir bisa memasukkan produk gratis ke
+    // keranjang tanpa perlu mencari harganya sendiri.
+    hargaMenu: hargaMenu ?? null,
     isActive: row.isActive,
   };
 }
@@ -25,14 +28,18 @@ function toPublic(row: RewardRow, namaMenu?: string | null) {
 /** Daftar reward. Default hanya yang aktif (untuk POS). */
 export async function listRewards(includeInactive = false) {
   const rows = await db
-    .select({ reward: loyaltyReward, namaMenu: menus.namaMenu })
+    .select({
+      reward: loyaltyReward,
+      namaMenu: menus.namaMenu,
+      hargaMenu: menus.harga,
+    })
     .from(loyaltyReward)
     .leftJoin(menus, eq(menus.menuId, loyaltyReward.menuId))
     .orderBy(desc(loyaltyReward.rewardId));
 
   return rows
     .filter((r) => includeInactive || r.reward.isActive)
-    .map((r) => toPublic(r.reward, r.namaMenu));
+    .map((r) => toPublic(r.reward, r.namaMenu, r.hargaMenu));
 }
 
 async function findReward(id: number) {
