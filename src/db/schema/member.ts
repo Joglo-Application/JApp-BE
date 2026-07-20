@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, integer, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, integer, text, date, uniqueIndex } from 'drizzle-orm/pg-core';
 import { timestamps } from './_helpers';
 
 export const member = pgTable(
@@ -9,6 +9,12 @@ export const member = pgTable(
     noTelp: varchar('no_telp', { length: 20 }),
     email: varchar('email', { length: 100 }),
     poin: integer('poin').notNull().default(0),
+    // Data profil yang sudah dikumpulkan form member di POS tapi sebelumnya
+    // tidak punya kolom, sehingga isinya terbuang diam-diam saat disimpan.
+    gender: varchar('gender', { length: 20 }),
+    tanggalLahir: date('tanggal_lahir'),
+    alamat: text('alamat'),
+    catatan: text('catatan'),
     ...timestamps,
   },
   (table) => ({

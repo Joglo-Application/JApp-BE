@@ -1,9 +1,11 @@
-import { count, desc, eq, ilike, or } from 'drizzle-orm';
+import { count, desc, eq, ilike, inArray, or } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { member } from '@/db/schema/member';
 import { memberPoinLog } from '@/db/schema/member-poin-log';
 import { pesanan } from '@/db/schema/pesanan';
 import { pembayaran } from '@/db/schema/pembayaran';
+import { detailPesanan } from '@/db/schema/detail-pesanan';
+import { menus } from '@/db/schema/menus';
 import { kodeTransaksi } from '../transaksi/transaksi.service';
 import { BadRequestError, ConflictError, NotFoundError } from '@/shared/errors';
 import { getPaginationParams } from '@/shared/pagination';
@@ -115,6 +117,7 @@ export async function listTransaksiMember(id: number) {
       total: pesanan.total,
       metode: pembayaran.metode,
       returAt: pesanan.returAt,
+      customerNama: pesanan.customerNama,
     })
     .from(pesanan)
     .innerJoin(pembayaran, eq(pembayaran.pesananId, pesanan.pesananId))
@@ -122,11 +125,42 @@ export async function listTransaksiMember(id: number) {
     .orderBy(desc(pesanan.createdAt))
     .limit(100);
 
+  if (rows.length === 0) return [];
+
+  // Ringkasan item ikut dikirim karena layar riwayat menampilkannya dalam
+  // satu baris, mis. "5x Bakmi Udang, 2x Lemon Squash".
+  const ids = rows.map((r) => r.pesananId);
+  const details = await db
+    .select({
+      pesananId: detailPesanan.pesananId,
+      jumlah: detailPesanan.jumlah,
+      namaMenu: menus.namaMenu,
+      namaCustom: detailPesanan.namaCustom,
+    })
+    .from(detailPesanan)
+    .leftJoin(menus, eq(menus.menuId, detailPesanan.menuId))
+    .where(inArray(detailPesanan.pesananId, ids));
+
+  const ringkasan = new Map<number, string[]>();
+  for (const d of details) {
+    const list = ringkasan.get(d.pesananId) ?? [];
+    list.push(`${d.jumlah}x ${d.namaMenu ?? d.namaCustom ?? ''}`);
+    ringkasan.set(d.pesananId, list);
+  }
+
+  const [profil] = await db
+    .select({ nama: member.nama })
+    .from(member)
+    .where(eq(member.memberId, id))
+    .limit(1);
+
   return rows.map((r) => ({
     kodeTransaksi: kodeTransaksi(r.pesananId),
     waktu: r.createdAt.toISOString(),
     total: r.total,
     tipePembayaran: metodeLabel[r.metode] ?? r.metode,
+    items: (ringkasan.get(r.pesananId) ?? []).join(', '),
+    namaKontak: r.customerNama ?? profil?.nama ?? '',
     isReturned: r.returAt !== null,
   }));
 }
