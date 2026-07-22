@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { pesanan } from '@/db/schema/pesanan';
 import { detailPesanan } from '@/db/schema/detail-pesanan';
@@ -24,22 +24,34 @@ interface KitchenItem {
  * Saat pesanan dibayar (status `completed`) otomatis hilang dari daftar ini.
  * Dipetakan ke bentuk yang diharapkan `KitchenOrderModel.fromJson` di FE.
  */
-export async function listActiveOrders(date?: string) {
+export async function listActiveOrders(
+  date?: string,
+  status: 'in_progress' | 'completed' | 'all' = 'in_progress',
+) {
+  // Dapur hanya butuh yang sedang diproses; tab Transaksi butuh keduanya.
+  const statuses: ('in_progress' | 'completed')[] =
+    status === 'all' ? ['in_progress', 'completed'] : [status];
+
   const rows = await db
     .select({
       pesananId: pesanan.pesananId,
       orderType: pesanan.orderType,
+      status: pesanan.status,
       createdAt: pesanan.createdAt,
     })
     .from(pesanan)
-    // Order yang sedang diproses dapur (sebelumnya 'pending').
     .where(
       date
-        ? and(eq(pesanan.status, 'in_progress'), eq(pesanan.tanggal, date))
-        : eq(pesanan.status, 'in_progress'),
+        ? and(inArray(pesanan.status, statuses), eq(pesanan.tanggal, date))
+        : inArray(pesanan.status, statuses),
     )
-    // FIFO: yang paling lama masuk tampil duluan.
-    .orderBy(asc(pesanan.createdAt));
+    // Dapur (in_progress) FIFO: yang paling lama duluan. Transaksi (mengandung
+    // selesai) ditampilkan terbaru dulu, seperti riwayat.
+    .orderBy(
+      status === 'in_progress'
+        ? asc(pesanan.createdAt)
+        : desc(pesanan.createdAt),
+    );
 
   if (rows.length === 0) return [];
 
@@ -75,6 +87,7 @@ export async function listActiveOrders(date?: string) {
     id: String(r.pesananId),
     kodeTransaksi: `TRX-${String(r.pesananId).padStart(4, '0')}`,
     tipe: tipeLabel(r.orderType),
+    status: r.status,
     startTime: r.createdAt.toISOString(),
     items: itemsByPesanan.get(r.pesananId) ?? [],
   }));
