@@ -1,7 +1,9 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { area } from '@/db/schema/area';
 import { kategori } from '@/db/schema/kategori';
+import { bahanBaku } from '@/db/schema/bahan-baku';
+import { menus } from '@/db/schema/menus';
 import { metodePembayaran } from '@/db/schema/metode-pembayaran';
 import { ConflictError, NotFoundError } from '@/shared/errors';
 import type {
@@ -41,11 +43,44 @@ export async function deleteArea(id: number) {
 // ------------------------------------------------------------ Kategori
 
 export async function listKategori(jenis?: 'menu' | 'stok' | 'stok_gudang') {
-  return db
+  const rows = await db
     .select()
     .from(kategori)
     .where(jenis ? eq(kategori.jenis, jenis) : undefined)
     .orderBy(asc(kategori.urutan), asc(kategori.kategoriId));
+  if (rows.length === 0) return [];
+
+  // Jumlah produk per kategori. Kategori 'menu' ditaut menu lewat kategoriId;
+  // kategori stok/stok_gudang dicocokkan ke bahan baku lewat nama (bahan_baku
+  // menyimpan kategori sebagai teks bebas, bukan kolom relasi).
+  const perluMenu = rows.some((r) => r.jenis === 'menu');
+  const perluBahan = rows.some((r) => r.jenis !== 'menu');
+
+  const menuMap = new Map<number, number>();
+  if (perluMenu) {
+    const mr = await db
+      .select({ id: menus.kategoriId, n: count() })
+      .from(menus)
+      .groupBy(menus.kategoriId);
+    for (const r of mr) if (r.id != null) menuMap.set(r.id, Number(r.n));
+  }
+
+  const bahanMap = new Map<string, number>();
+  if (perluBahan) {
+    const br = await db
+      .select({ nama: bahanBaku.kategori, n: count() })
+      .from(bahanBaku)
+      .groupBy(bahanBaku.kategori);
+    for (const r of br) if (r.nama != null) bahanMap.set(r.nama, Number(r.n));
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    produkCount:
+      r.jenis === 'menu'
+        ? (menuMap.get(r.kategoriId) ?? 0)
+        : (bahanMap.get(r.nama) ?? 0),
+  }));
 }
 
 export async function createKategori(input: CreateKategoriInput) {
