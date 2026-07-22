@@ -6,6 +6,11 @@ export const kitchenOrdersQuerySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal harus YYYY-MM-DD')
     .optional(),
+  /**
+   * Cakupan status: `in_progress` (default, layar Dapur), `completed`, atau
+   * `all` (tab Transaksi — sedang diproses + sudah selesai).
+   */
+  status: z.enum(['in_progress', 'completed', 'all']).optional(),
 });
 
 export const kitchenItemParamSchema = z.object({
