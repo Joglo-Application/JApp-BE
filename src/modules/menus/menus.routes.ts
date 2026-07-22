@@ -31,10 +31,13 @@ menusRoutes.use('*', authMiddleware);
 // Menu CRUD
 menusRoutes.get('/', validate('query', paginationQuerySchema), listMenusHandler);
 menusRoutes.get('/:id', validate('param', menuIdParamSchema), getMenuHandler);
-menusRoutes.post('/', requireRole('admin', 'owner'), validate('json', createMenuSchema), createMenuHandler);
+// Tab Inventori dimiliki role dapur, gudang, dan kasir: hanya mereka yang boleh
+// membuat/mengubah produk. Role lain read-only (lihat
+// auth_provider.canManageInventori di FE).
+menusRoutes.post('/', requireRole('dapur', 'gudang', 'kasir'), validate('json', createMenuSchema), createMenuHandler);
 menusRoutes.patch(
   '/:id',
-  requireRole('admin', 'owner'),
+  requireRole('dapur', 'gudang', 'kasir'),
   validate('param', menuIdParamSchema),
   validate('json', updateMenuSchema),
   updateMenuHandler,

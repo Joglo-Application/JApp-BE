@@ -11,8 +11,8 @@ import {
 import * as h from './stok-dokumen.handler';
 import type { AppBindings } from '@/types/hono';
 
-/** Dokumen stok dikelola gudang, owner, dan admin. */
-const kelola = requireRole('admin', 'owner', 'gudang');
+/** Dokumen stok boleh dikelola semua role. */
+const kelola = requireRole('admin', 'owner', 'supervisor', 'kasir', 'dapur', 'gudang');
 
 // -------------------------------------------------------- /stok-opname
 export const stokOpnameRoutes = new Hono<AppBindings>();

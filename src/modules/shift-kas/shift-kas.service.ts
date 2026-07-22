@@ -57,11 +57,23 @@ async function buildShift(shiftId: number) {
 }
 
 /** Shift `open` milik user (untuk restore state), atau null. */
-export async function getActiveShift(userId: number) {
+/**
+ * Shift yang sedang berjalan.
+ *
+ * Kasir hanya boleh melihat shiftnya sendiri. Supervisor/owner/admin tidak
+ * memegang laci sendiri — yang mereka awasi adalah shift kasir yang sedang
+ * buka, jadi `userId` dilepas dan diambil shift open terbaru.
+ */
+export async function getActiveShift(userId: number, opts?: { anyUser?: boolean }) {
   const [row] = await db
     .select({ shiftId: shiftKas.shiftId })
     .from(shiftKas)
-    .where(and(eq(shiftKas.userId, userId), eq(shiftKas.status, 'open')))
+    .where(
+      opts?.anyUser
+        ? eq(shiftKas.status, 'open')
+        : and(eq(shiftKas.userId, userId), eq(shiftKas.status, 'open')),
+    )
+    .orderBy(desc(shiftKas.waktuMulai))
     .limit(1);
   return row ? buildShift(row.shiftId) : null;
 }

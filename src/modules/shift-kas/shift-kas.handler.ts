@@ -14,7 +14,10 @@ function paramId(c: Parameters<Handler<AppBindings>>[0]): number {
 export const getActiveShiftHandler: Handler<AppBindings> = async (c) => {
   const user = c.get('user');
   if (!user) throw new UnauthorizedError();
-  const data = await service.getActiveShift(user.userId);
+  // Pengawas tak punya laci sendiri — mereka melihat shift kasir yang berjalan.
+  const anyUser =
+    user.role === 'admin' || user.role === 'owner' || user.role === 'supervisor';
+  const data = await service.getActiveShift(user.userId, { anyUser });
   return c.json(success(data));
 };
 
