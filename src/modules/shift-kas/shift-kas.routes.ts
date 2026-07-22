@@ -16,8 +16,13 @@ export const shiftKasRoutes = new Hono<AppBindings>();
 
 shiftKasRoutes.use('*', authMiddleware);
 
-// GET /shift-kas/aktif — shift open milik user login (restore state). Static → daftar dulu.
-shiftKasRoutes.get('/aktif', requireRole('admin', 'kasir'), h.getActiveShiftHandler);
+// GET /shift-kas/aktif — shift open (restore state). Kasir dapat miliknya sendiri,
+// admin/owner/spv dapat shift kasir yang sedang berjalan. Static → daftar dulu.
+shiftKasRoutes.get(
+  '/aktif',
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
+  h.getActiveShiftHandler,
+);
 
 // GET /shift-kas?date= — riwayat. Kasir lihat miliknya; admin/owner/spv semua.
 shiftKasRoutes.get(

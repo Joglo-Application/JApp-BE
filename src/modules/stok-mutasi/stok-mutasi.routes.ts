@@ -11,8 +11,8 @@ import {
 import * as h from './stok-mutasi.handler';
 import type { AppBindings } from '@/types/hono';
 
-/** Dokumen mutasi stok dikelola gudang, owner, dan admin. */
-const kelola = requireRole('admin', 'owner', 'gudang');
+/** Dokumen mutasi stok boleh dikelola semua role. */
+const kelola = requireRole('admin', 'owner', 'supervisor', 'kasir', 'dapur', 'gudang');
 
 // --------------------------------------------------------- /stok-masuk
 export const stokMasukRoutes = new Hono<AppBindings>();
