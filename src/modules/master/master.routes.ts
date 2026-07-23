@@ -18,6 +18,9 @@ import type { AppBindings } from '@/types/hono';
 /** Kelola master data: owner/admin. Baca: semua role. */
 const kelola = requireRole('admin', 'owner');
 
+/** Kategori juga boleh dikelola gudang (mengurus kategori stok gudang). */
+const kelolaKategori = requireRole('admin', 'owner', 'gudang');
+
 // ---------------------------------------------------------------- /area
 export const areaRoutes = new Hono<AppBindings>();
 areaRoutes.use('*', authMiddleware);
@@ -36,15 +39,15 @@ areaRoutes.delete('/:id', kelola, validate('param', idParamSchema), h.deleteArea
 export const kategoriRoutes = new Hono<AppBindings>();
 kategoriRoutes.use('*', authMiddleware);
 kategoriRoutes.get('/', validate('query', listKategoriQuerySchema), h.listKategoriHandler);
-kategoriRoutes.post('/', kelola, validate('json', createKategoriSchema), h.createKategoriHandler);
+kategoriRoutes.post('/', kelolaKategori, validate('json', createKategoriSchema), h.createKategoriHandler);
 kategoriRoutes.patch(
   '/:id',
-  kelola,
+  kelolaKategori,
   validate('param', idParamSchema),
   validate('json', updateKategoriSchema),
   h.updateKategoriHandler,
 );
-kategoriRoutes.delete('/:id', kelola, validate('param', idParamSchema), h.deleteKategoriHandler);
+kategoriRoutes.delete('/:id', kelolaKategori, validate('param', idParamSchema), h.deleteKategoriHandler);
 
 // --------------------------------------------------- /metode-pembayaran
 export const metodePembayaranRoutes = new Hono<AppBindings>();
