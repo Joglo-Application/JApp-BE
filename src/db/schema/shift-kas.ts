@@ -34,6 +34,8 @@ export const shiftKasEntry = pgTable('shift_kas_entry', {
   namaTransaksi: varchar('nama_transaksi', { length: 100 }).notNull(),
   jumlah: integer('jumlah').notNull(),
   catatan: text('catatan'),
+  /** URL lampiran (mis. foto bukti) hasil `POST /upload`; opsional. */
+  lampiranUrl: varchar('lampiran_url', { length: 255 }),
   waktu: timestamp('waktu', { withTimezone: true }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

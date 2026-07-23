@@ -51,6 +51,7 @@ async function buildShift(shiftId: number) {
       namaTransaksi: e.namaTransaksi,
       jumlah: e.jumlah,
       catatan: e.catatan ?? '',
+      lampiranUrl: e.lampiranUrl ?? null,
       waktu: e.waktu.toISOString(),
     })),
   };
@@ -109,6 +110,7 @@ export async function addEntry(userId: number, shiftId: number, input: CreateEnt
     namaTransaksi: input.namaTransaksi,
     jumlah: input.jumlah,
     catatan: input.catatan ?? null,
+    lampiranUrl: input.lampiranUrl ?? null,
   });
   return buildShift(shiftId);
 }
@@ -129,6 +131,8 @@ export async function updateEntry(userId: number, entryId: number, input: Update
       namaTransaksi: input.namaTransaksi,
       jumlah: input.jumlah,
       catatan: input.catatan === undefined ? undefined : input.catatan,
+      lampiranUrl:
+        input.lampiranUrl === undefined ? undefined : input.lampiranUrl,
     })
     .where(eq(shiftKasEntry.entryId, entryId));
   return buildShift(e.shiftId);

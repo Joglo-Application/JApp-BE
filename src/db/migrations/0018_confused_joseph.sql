@@ -1,0 +1,1 @@
+ALTER TABLE "shift_kas_entry" ADD COLUMN "lampiran_url" varchar(255);

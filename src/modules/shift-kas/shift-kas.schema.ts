@@ -9,6 +9,7 @@ export const createEntrySchema = z.object({
   namaTransaksi: z.string().trim().min(1).max(100),
   jumlah: z.number().int().positive(),
   catatan: z.string().trim().max(1000).optional(),
+  lampiranUrl: z.string().trim().max(255).optional(),
 });
 
 export const updateEntrySchema = z
@@ -16,6 +17,7 @@ export const updateEntrySchema = z
     namaTransaksi: z.string().trim().min(1).max(100).optional(),
     jumlah: z.number().int().positive().optional(),
     catatan: z.string().trim().max(1000).nullable().optional(),
+    lampiranUrl: z.string().trim().max(255).nullable().optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
     message: 'Minimal satu field harus diisi',
