@@ -35,7 +35,7 @@ shiftKasRoutes.get(
 // POST /shift-kas — mulai shift.
 shiftKasRoutes.post(
   '/',
-  requireRole('admin', 'kasir'),
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
   validate('json', startShiftSchema),
   h.startShiftHandler,
 );
@@ -43,14 +43,14 @@ shiftKasRoutes.post(
 // Entry (edit/hapus) — segmen 'entry' statis, tak bentrok dengan /:id.
 shiftKasRoutes.patch(
   '/entry/:id',
-  requireRole('admin', 'kasir'),
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
   validate('param', idParamSchema),
   validate('json', updateEntrySchema),
   h.updateEntryHandler,
 );
 shiftKasRoutes.delete(
   '/entry/:id',
-  requireRole('admin', 'kasir'),
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
   validate('param', idParamSchema),
   h.deleteEntryHandler,
 );
@@ -66,7 +66,7 @@ shiftKasRoutes.get(
 // POST /shift-kas/:id/entry — tambah setoran/penarikan.
 shiftKasRoutes.post(
   '/:id/entry',
-  requireRole('admin', 'kasir'),
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
   validate('param', idParamSchema),
   validate('json', createEntrySchema),
   h.addEntryHandler,
@@ -75,7 +75,7 @@ shiftKasRoutes.post(
 // POST /shift-kas/:id/tutup — tutup shift.
 shiftKasRoutes.post(
   '/:id/tutup',
-  requireRole('admin', 'kasir'),
+  requireRole('admin', 'owner', 'kasir', 'supervisor'),
   validate('param', idParamSchema),
   h.closeShiftHandler,
 );

@@ -51,10 +51,10 @@ bahanBakuRoutes.patch(
   tambahStokHandler,
 );
 
-// Hapus bahan: admin only (lebih sensitif)
+// Hapus bahan: admin + gudang (pengelola stok gudang).
 bahanBakuRoutes.delete(
   '/:id',
-  requireRole('admin'),
+  requireRole('admin', 'gudang'),
   validate('param', bahanIdParamSchema),
   deleteHandler,
 );
