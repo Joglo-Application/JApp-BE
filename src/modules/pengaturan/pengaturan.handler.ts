@@ -21,15 +21,19 @@ export const simpanGrupHandler: Handler<AppBindings> = async (c) => {
 };
 
 /**
- * Ubah cepat tarif pajak dari POS. Disetujui PIN supervisor (bukan role
- * owner/admin), lalu disimpan ke grup 'pajak' sebagai default toko.
+ * Ubah cepat tarif (Pajak / Biaya Layanan) dari POS. Disetujui PIN supervisor
+ * (bukan role owner/admin), lalu disimpan ke grup 'pajak' sebagai default toko.
  */
 export const ubahPajakCepatHandler: Handler<AppBindings> = async (c) => {
-  const { tipe, nilai, pin } = c.req.valid('json' as never) as UbahPajakCepatInput;
+  const { target, tipe, nilai, pin } = c.req.valid('json' as never) as UbahPajakCepatInput;
   await verifyPin({ pin });
   const patch =
-    tipe === 'amount'
-      ? { pajakAktif: true, pajakTipe: 'amount' as const, pajakNominal: nilai }
-      : { pajakAktif: true, pajakTipe: 'percent' as const, pajakPersen: nilai };
+    target === 'layanan'
+      ? tipe === 'amount'
+        ? { biayaLayananAktif: true, biayaLayananTipe: 'amount' as const, biayaLayananNominal: nilai }
+        : { biayaLayananAktif: true, biayaLayananTipe: 'percent' as const, biayaLayananPersen: nilai }
+      : tipe === 'amount'
+        ? { pajakAktif: true, pajakTipe: 'amount' as const, pajakNominal: nilai }
+        : { pajakAktif: true, pajakTipe: 'percent' as const, pajakPersen: nilai };
   return c.json(success(await service.simpanGrup('pajak', patch)));
 };

@@ -1,6 +1,5 @@
 import { and, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '@/config/database';
-import { env } from '@/config/env';
 import { pesanan } from '@/db/schema/pesanan';
 import { detailPesanan } from '@/db/schema/detail-pesanan';
 import { menus } from '@/db/schema/menus';
@@ -229,11 +228,15 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       };
     });
 
-    const serviceCharge = Math.round(subtotal * env.SERVICE_RATE);
-    // Pajak = default toko yang tersimpan (grup 'pajak'), diubah lewat POS
-    // (PIN supervisor) atau layar Pengaturan Pajak: 'percent' = % dari subtotal,
-    // 'amount' = nominal Rupiah tetap.
+    // Pajak & Biaya Layanan = default toko yang tersimpan (grup 'pajak'), diubah
+    // lewat POS (PIN supervisor) atau layar Pengaturan Pajak: 'percent' = % dari
+    // subtotal, 'amount' = nominal Rupiah tetap.
     const pajakSetting = await getGrupPengaturan('pajak');
+    const serviceCharge = pajakSetting.biayaLayananAktif
+      ? pajakSetting.biayaLayananTipe === 'amount'
+        ? Math.round(pajakSetting.biayaLayananNominal)
+        : Math.round(subtotal * (pajakSetting.biayaLayananPersen / 100))
+      : 0;
     const pajak = pajakSetting.pajakAktif
       ? pajakSetting.pajakTipe === 'amount'
         ? Math.round(pajakSetting.pajakNominal)

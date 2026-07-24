@@ -40,6 +40,10 @@ export const pajakSchema = z.object({
   pajakNominal: z.number().min(0).default(0),
   biayaLayananAktif: z.boolean().default(true),
   biayaLayananPersen: z.number().min(0).max(100).default(5),
+  /** Tipe biaya layanan: 'percent' (dari subtotal) atau 'amount' (nominal Rp). */
+  biayaLayananTipe: z.enum(['percent', 'amount']).default('percent'),
+  /** Nominal biaya layanan tetap (Rp) bila biayaLayananTipe = 'amount'. */
+  biayaLayananNominal: z.number().min(0).default(0),
   // PPN dan Tax dikelola terpisah dari pajak toko di layar Pengaturan Pajak.
   ppnAktif: z.boolean().default(false),
   ppnPersen: z.number().min(0).max(100).default(0),
@@ -98,10 +102,12 @@ export const grupParamSchema = z.object({
 });
 
 /**
- * Ubah cepat tarif pajak dari layar POS (ketuk baris "Pajak"). Disetujui PIN
- * supervisor, bukan role owner/admin, supaya kasir bisa memakainya.
+ * Ubah cepat tarif dari layar POS (ketuk baris "Pajak" / "Biaya Layanan").
+ * Disetujui PIN supervisor, bukan role owner/admin, supaya kasir bisa memakainya.
+ * [target] menentukan tarif mana yang diubah.
  */
 export const ubahPajakCepatSchema = z.object({
+  target: z.enum(['pajak', 'layanan']).default('pajak'),
   tipe: z.enum(['percent', 'amount']),
   nilai: z.number().min(0),
   pin: z.string().regex(/^\d{4,8}$/, 'PIN harus 4-8 digit angka'),
