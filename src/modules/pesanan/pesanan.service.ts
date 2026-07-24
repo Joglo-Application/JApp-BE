@@ -230,7 +230,15 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
     });
 
     const serviceCharge = Math.round(subtotal * env.SERVICE_RATE);
-    const pajak = Math.round(subtotal * env.TAX_RATE);
+    // Pajak = default toko yang tersimpan (grup 'pajak'), diubah lewat POS
+    // (PIN supervisor) atau layar Pengaturan Pajak: 'percent' = % dari subtotal,
+    // 'amount' = nominal Rupiah tetap.
+    const pajakSetting = await getGrupPengaturan('pajak');
+    const pajak = pajakSetting.pajakAktif
+      ? pajakSetting.pajakTipe === 'amount'
+        ? Math.round(pajakSetting.pajakNominal)
+        : Math.round(subtotal * (pajakSetting.pajakPersen / 100))
+      : 0;
     const diskon = computeOrderDiscount(subtotal, input.diskon);
     const total = subtotal + serviceCharge + pajak - diskon;
 

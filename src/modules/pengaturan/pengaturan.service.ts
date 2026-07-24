@@ -1,19 +1,25 @@
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import { db } from '@/config/database';
 import { pengaturan } from '@/db/schema/pengaturan';
 import { BadRequestError } from '@/shared/errors';
 import { GRUP_SCHEMAS, type GrupPengaturan } from './pengaturan.schema';
 
+type GrupNilai<G extends GrupPengaturan> = z.infer<(typeof GRUP_SCHEMAS)[G]>;
+
 /** Nilai default sebuah grup — hasil parse objek kosong lewat skema Zod. */
-function defaultGrup(grup: GrupPengaturan) {
-  return GRUP_SCHEMAS[grup].parse({});
+function defaultGrup<G extends GrupPengaturan>(grup: G): GrupNilai<G> {
+  return GRUP_SCHEMAS[grup].parse({}) as GrupNilai<G>;
 }
 
 /**
  * Membaca satu grup pengaturan. Bila belum pernah disimpan, mengembalikan
- * nilai default sehingga frontend selalu dapat bentuk yang lengkap.
+ * nilai default sehingga frontend selalu dapat bentuk yang lengkap. Generic
+ * agar tipe hasil menyempit sesuai [grup] (mis. getGrup('pajak') → PajakNilai).
  */
-export async function getGrup(grup: GrupPengaturan) {
+export async function getGrup<G extends GrupPengaturan>(
+  grup: G,
+): Promise<GrupNilai<G>> {
   const [row] = await db
     .select()
     .from(pengaturan)
@@ -27,7 +33,7 @@ export async function getGrup(grup: GrupPengaturan) {
     ...defaultGrup(grup),
     ...(row.nilai as Record<string, unknown>),
   });
-  return parsed.success ? parsed.data : defaultGrup(grup);
+  return (parsed.success ? parsed.data : defaultGrup(grup)) as GrupNilai<G>;
 }
 
 /** Seluruh grup pengaturan sekaligus. */
