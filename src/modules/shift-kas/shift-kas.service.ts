@@ -82,12 +82,15 @@ export async function getActiveShift(userId: number, opts?: { anyUser?: boolean 
 /** Mulai shift baru. Tolak bila user masih punya shift `open`. */
 export async function startShift(userId: number, kasAwal: number) {
   const [open] = await db
-    .select({ shiftId: shiftKas.shiftId })
+    .select({ shiftId: shiftKas.shiftId, tanggal: shiftKas.tanggal })
     .from(shiftKas)
     .where(and(eq(shiftKas.userId, userId), eq(shiftKas.status, 'open')))
     .limit(1);
   if (open) {
-    throw new ConflictError(`Masih ada shift aktif (#${open.shiftId}). Tutup dulu sebelum memulai shift baru.`);
+    throw new ConflictError(
+      `Masih ada shift aktif dari tanggal ${open.tanggal}. Tutup dulu sebelum memulai shift baru.`,
+      { shiftId: open.shiftId, tanggal: open.tanggal },
+    );
   }
   const [created] = await db.insert(shiftKas).values({ userId, kasAwal }).returning();
   return buildShift(created.shiftId);
