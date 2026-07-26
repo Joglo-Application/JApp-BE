@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { menus } from '@/db/schema/menus';
 import { resepMenu } from '@/db/schema/resep-menu';
@@ -12,6 +12,11 @@ import type {
   UpdateMenuInput,
   UpdateResepInput,
 } from './menus.schema';
+
+/** Kolom stok bertipe numeric(12,3) → butuh string dengan 3 desimal. */
+function toQty(value: number): string {
+  return value.toFixed(3);
+}
 
 export async function listMenus(query: PaginationQuery) {
   const { limit, offset, page } = getPaginationParams(query);
@@ -114,6 +119,40 @@ export async function createMenu(input: CreateMenuInput) {
           jumlahPakai: String(r.jumlahPakai),
         })),
       );
+
+      // Saat produk disimpan, potong Stok Gudang sekali sebesar jumlah pakai
+      // tiap bahan di resep: stok_gudang_baru = stok_gudang - jumlahPakai
+      // (mengikuti rumus: qty stok - jumlah dipakai = qty stok gudang).
+      const konsumsi = new Map<number, number>();
+      for (const r of uniqueResep) {
+        konsumsi.set(r.bahanId, Number(r.jumlahPakai));
+      }
+      const bahanIds = [...konsumsi.keys()];
+      const bahanRows = await tx
+        .select()
+        .from(bahanBaku)
+        .where(inArray(bahanBaku.bahanId, bahanIds));
+      const bahanMap = new Map(bahanRows.map((b) => [b.bahanId, b]));
+
+      // Validasi ketersediaan dulu, baru potong (agar transaksi rollback dan
+      // stok tidak jadi negatif bila salah satu bahan tidak cukup).
+      for (const [bahanId, need] of konsumsi) {
+        const bahan = bahanMap.get(bahanId);
+        if (!bahan) throw new NotFoundError(`Bahan baku id ${bahanId} tidak ditemukan`);
+        if (Number(bahan.stok) < need) {
+          throw new ConflictError(
+            `Stok "${bahan.namaBahan}" tidak mencukupi ` +
+              `(tersedia ${Number(bahan.stok)}, butuh ${need})`,
+          );
+        }
+      }
+      for (const [bahanId, need] of konsumsi) {
+        const bahan = bahanMap.get(bahanId)!;
+        await tx
+          .update(bahanBaku)
+          .set({ stok: toQty(Number(bahan.stok) - need) })
+          .where(eq(bahanBaku.bahanId, bahanId));
+      }
     }
 
     return created;
