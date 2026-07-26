@@ -9,6 +9,7 @@ import {
 } from '@/db/schema/stok-dokumen';
 import { bahanBaku } from '@/db/schema/bahan-baku';
 import { menus } from '@/db/schema/menus';
+import { resepMenu } from '@/db/schema/resep-menu';
 import { users } from '@/db/schema/users';
 import { ConflictError, NotFoundError } from '@/shared/errors';
 import type {
@@ -258,12 +259,21 @@ export async function listProduksi(query: RentangQuery) {
 }
 
 /** `arah` 1 menambah stok menu, -1 mengembalikannya saat dokumen dibatalkan. */
+/**
+ * Menerapkan (arah=1) atau membatalkan (arah=-1) sebuah dokumen produksi:
+ *   1. Stok produk jadi (`menus.stok`) naik/turun sejumlah yang diproduksi.
+ *   2. Bahan baku (stok gudang) yang dipakai resep dipotong saat posting dan
+ *      dikembalikan saat batal — sebanding dengan jumlah produksi. Saat posting
+ *      dicek ketersediaannya lebih dulu ("resep harus tersedia").
+ */
 async function terapkanProduksi(tx: Tx, produksiId: number, arah: 1 | -1) {
   const items = await tx
     .select()
     .from(produksiStokItem)
     .where(eq(produksiStokItem.produksiId, produksiId));
+  if (items.length === 0) return;
 
+  // 1) Stok produk jadi.
   for (const item of items) {
     const delta = arah * item.jumlah;
     if (arah < 0) {
@@ -282,6 +292,66 @@ async function terapkanProduksi(tx: Tx, produksiId: number, arah: 1 | -1) {
       .update(menus)
       .set({ stok: sql`${menus.stok} + ${delta}` })
       .where(eq(menus.menuId, item.menuId));
+  }
+
+  // 2) Bahan baku sesuai resep (jumlahPakai per unit × jumlah produksi).
+  const menuIds = items.map((i) => i.menuId);
+  const resepRows = await tx
+    .select({
+      menuId: resepMenu.menuId,
+      bahanId: resepMenu.bahanId,
+      jumlahPakai: resepMenu.jumlahPakai,
+    })
+    .from(resepMenu)
+    .where(inArray(resepMenu.menuId, menuIds));
+
+  const resepByMenu = new Map<number, { bahanId: number; jumlahPakai: string }[]>();
+  for (const r of resepRows) {
+    const arr = resepByMenu.get(r.menuId) ?? [];
+    arr.push({ bahanId: r.bahanId, jumlahPakai: r.jumlahPakai });
+    resepByMenu.set(r.menuId, arr);
+  }
+
+  // Total kebutuhan bahan (digabung antar item).
+  const konsumsi = new Map<number, number>();
+  for (const item of items) {
+    for (const r of resepByMenu.get(item.menuId) ?? []) {
+      const need = Number(r.jumlahPakai) * item.jumlah;
+      konsumsi.set(r.bahanId, (konsumsi.get(r.bahanId) ?? 0) + need);
+    }
+  }
+  if (konsumsi.size === 0) return;
+
+  const bahanIds = [...konsumsi.keys()];
+  const bahanRows = await tx
+    .select()
+    .from(bahanBaku)
+    .where(inArray(bahanBaku.bahanId, bahanIds));
+  const bahanMap = new Map(bahanRows.map((b) => [b.bahanId, b]));
+
+  // Validasi ketersediaan hanya saat posting (arah=1).
+  if (arah > 0) {
+    for (const [bahanId, need] of konsumsi) {
+      const bahan = bahanMap.get(bahanId);
+      if (!bahan) throw new NotFoundError(`Bahan baku id ${bahanId} tidak ditemukan`);
+      if (Number(bahan.stok) < need) {
+        throw new ConflictError(
+          `Stok bahan "${bahan.namaBahan}" tidak cukup untuk produksi ` +
+            `(tersedia ${Number(bahan.stok)}, butuh ${need})`,
+        );
+      }
+    }
+  }
+
+  for (const [bahanId, need] of konsumsi) {
+    const bahan = bahanMap.get(bahanId);
+    if (!bahan) throw new NotFoundError(`Bahan baku id ${bahanId} tidak ditemukan`);
+    // posting (arah=1): kurangi need; batal (arah=-1): kembalikan need.
+    const nilaiBaru = Number(bahan.stok) - arah * need;
+    await tx
+      .update(bahanBaku)
+      .set({ stok: toQty(nilaiBaru) })
+      .where(eq(bahanBaku.bahanId, bahanId));
   }
 }
 
