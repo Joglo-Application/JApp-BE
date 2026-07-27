@@ -1,7 +1,7 @@
 import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/config/database';
 import { users } from '@/db/schema/users';
-import { UnauthorizedError, NotFoundError } from '@/shared/errors';
+import { UnauthorizedError, ForbiddenError, NotFoundError } from '@/shared/errors';
 import { verifyPassword } from '@/utils/password';
 import { signToken } from '@/utils/jwt';
 import type { LoginInput, VerifyPinInput } from './auth.schema';
@@ -80,7 +80,9 @@ export async function verifyPin(input: VerifyPinInput) {
     }
   }
 
-  throw new UnauthorizedError('PIN tidak valid');
+  // 403 (bukan 401) supaya PIN salah tidak dianggap "sesi habis" oleh klien
+  // — interceptor FE hanya logout pada 401.
+  throw new ForbiddenError('PIN tidak valid');
 }
 
 export async function getCurrentUser(userId: number) {
