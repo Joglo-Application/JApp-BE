@@ -70,6 +70,34 @@ function computeOrderDiscount(subtotal: number, diskon?: OrderDiscountInput): nu
   return Math.min(subtotal, Math.round(diskon.nilai));
 }
 
+type TarifOverride = { tipe: 'amount' | 'percent'; nilai: number };
+type TarifDefault = {
+  aktif: boolean;
+  tipe: 'amount' | 'percent';
+  persen: number;
+  nominal: number;
+};
+
+/**
+ * Nominal tarif (Pajak / Biaya Layanan). Override per pesanan menang atas default
+ * toko; tanpa override pakai default (nol bila dinonaktifkan).
+ */
+function hitungTarif(
+  subtotal: number,
+  override: TarifOverride | undefined,
+  def: TarifDefault,
+): number {
+  if (override) {
+    return override.tipe === 'amount'
+      ? Math.round(override.nilai)
+      : Math.round(subtotal * (override.nilai / 100));
+  }
+  if (!def.aktif) return 0;
+  return def.tipe === 'amount'
+    ? Math.round(def.nominal)
+    : Math.round(subtotal * (def.persen / 100));
+}
+
 /**
  * Membuat pesanan baru. Mendukung item menu (memotong stok via resep) maupun
  * item custom (ad-hoc, tanpa stok). Menghitung subtotal, biaya layanan, pajak,
@@ -228,20 +256,22 @@ export async function createPesanan(userId: number, input: CreatePesananInput) {
       };
     });
 
-    // Pajak & Biaya Layanan = default toko yang tersimpan (grup 'pajak'), diubah
-    // lewat POS (PIN supervisor) atau layar Pengaturan Pajak: 'percent' = % dari
-    // subtotal, 'amount' = nominal Rupiah tetap.
+    // Pajak & Biaya Layanan = default toko yang tersimpan (grup 'pajak'), tapi
+    // bisa di-override sementara per pesanan dari POS (PIN supervisor). Bila ada
+    // override dipakai override-nya; selain itu pakai default toko.
     const pajakSetting = await getGrupPengaturan('pajak');
-    const serviceCharge = pajakSetting.biayaLayananAktif
-      ? pajakSetting.biayaLayananTipe === 'amount'
-        ? Math.round(pajakSetting.biayaLayananNominal)
-        : Math.round(subtotal * (pajakSetting.biayaLayananPersen / 100))
-      : 0;
-    const pajak = pajakSetting.pajakAktif
-      ? pajakSetting.pajakTipe === 'amount'
-        ? Math.round(pajakSetting.pajakNominal)
-        : Math.round(subtotal * (pajakSetting.pajakPersen / 100))
-      : 0;
+    const serviceCharge = hitungTarif(subtotal, input.layananOverride, {
+      aktif: pajakSetting.biayaLayananAktif,
+      tipe: pajakSetting.biayaLayananTipe,
+      persen: pajakSetting.biayaLayananPersen,
+      nominal: pajakSetting.biayaLayananNominal,
+    });
+    const pajak = hitungTarif(subtotal, input.pajakOverride, {
+      aktif: pajakSetting.pajakAktif,
+      tipe: pajakSetting.pajakTipe,
+      persen: pajakSetting.pajakPersen,
+      nominal: pajakSetting.pajakNominal,
+    });
     const diskon = computeOrderDiscount(subtotal, input.diskon);
     const total = subtotal + serviceCharge + pajak - diskon;
 

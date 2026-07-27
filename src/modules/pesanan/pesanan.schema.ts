@@ -19,6 +19,12 @@ export const orderDiscountSchema = z.object({
   promoNama: z.string().trim().max(100).optional(),
 });
 
+/** Override tarif (Pajak / Biaya Layanan) per pesanan. */
+export const tarifOverrideSchema = z.object({
+  tipe: z.enum(['amount', 'percent']),
+  nilai: z.number().min(0),
+});
+
 export const createPesananSchema = z
   .object({
     items: z.array(pesananItemSchema).min(1, 'Pesanan harus memiliki minimal satu item'),
@@ -29,6 +35,11 @@ export const createPesananSchema = z
     memberId: z.number().int().positive().optional(),
     jumlahTamu: z.number().int().positive().max(999).optional(),
     diskon: orderDiscountSchema.optional(),
+    // Override sementara Pajak / Biaya Layanan khusus pesanan ini (disetujui PIN
+    // supervisor di POS). Bila absen, server pakai default toko (grup 'pajak').
+    // 'percent' = % dari subtotal, 'amount' = nominal Rupiah tetap.
+    pajakOverride: tarifOverrideSchema.optional(),
+    layananOverride: tarifOverrideSchema.optional(),
     // true = simpan sebagai draft "held" (parkir): tanpa potong stok & tanpa
     // masuk dapur. Validasi metode/meja di-relax karena ini belum final.
     hold: z.boolean().default(false),
